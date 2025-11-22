@@ -1,0 +1,419 @@
+---
+alwaysApply: false
+---
+# VitalForge Project Rules - Ruby 3.2.2, Rails 8.0, PostgreSQL
+
+## Technology Stack
+- Ruby 3.2.2
+- Rails 8.0.2
+- PostgreSQL
+- React + TypeScript + ESBuild (for frontend)
+- ViewComponent (for React mounting)
+
+## General Ruby & Rails Best Practices
+
+### Ruby Style
+- Use Ruby 3.2+ syntax and features
+- Prefer keyword arguments over positional arguments
+- Use safe navigation operator (&.) where appropriate
+- Avoid monkey patching; use refinements if necessary
+- Follow Rubocop Rails Omakase style guide
+- Use meaningful variable and method names (no single letters except in blocks)
+- Keep methods under 15 lines when possible
+
+### Rails Conventions
+- Follow REST conventions for routes and controllers
+- Use Rails naming conventions (singular models, plural controllers)
+- Keep controllers thin - business logic belongs in models or service objects
+- Use concerns for shared behavior, but don't overuse them
+- Prefer built-in Rails methods over custom implementations
+
+## Database & PostgreSQL Best Practices
+
+### Migrations
+- ALWAYS make migrations reversible (provide `down` method or use reversible methods)
+- Add NOT NULL constraints in migrations, not just validations
+- Add foreign key constraints for referential integrity
+- Create indexes for foreign keys and frequently queried columns
+- Use `add_index` with descriptive names for complex indexes
+- Add comments to migrations explaining WHY, not WHAT
+- Never edit existing migrations that have been run in production
+- Use database-level defaults where appropriate
+- Test migrations both up and down before committing
+
+### Database Design
+- Use PostgreSQL-specific features (JSONB, arrays, full-text search) when beneficial
+- Add CHECK constraints for data validation at database level
+- Use partial indexes for conditional uniqueness
+- Prefer integer IDs unless UUIDs are specifically needed
+- Always add timestamps (created_at, updated_at) to tables
+- Use proper data types (don't store dates as strings)
+- Add database-level unique constraints, not just model validations
+
+### Data Integrity
+- ALWAYS use database transactions for multi-step operations
+- Add foreign key constraints with appropriate ON DELETE behavior
+- Use database-level validations AND model-level validations
+- Prefer strong parameters over manual attribute whitelisting
+- Validate presence, format, and uniqueness at both database and model levels
+- Use `dependent: :destroy` or `dependent: :restrict_with_error` appropriately
+
+## Model Best Practices
+
+### ActiveRecord Models
+- Keep models focused on domain logic, not HTTP concerns
+- Use scopes for reusable queries
+- Prefer `find_by` over `where.first`
+- Use `find_each` or `in_batches` for large datasets
+- Avoid N+1 queries - use `includes`, `eager_load`, or `preload`
+- Use Devise for authentication (database_authenticatable, validatable). Never store plain text passwords
+- Validate email formats with URI::MailTo::EMAIL_REGEXP
+- Add model-level callbacks sparingly - prefer service objects for complex logic
+
+### Validations
+```ruby
+# Good - specific and clear
+validates :email, presence: true, 
+                  uniqueness: { case_sensitive: false },
+                  format: { with: URI::MailTo::EMAIL_REGEXP }
+
+# Bad - too generic
+validates :email, presence: true
+```
+
+### Associations
+- Always specify `dependent:` option on has_many/has_one
+- Use `inverse_of` for bidirectional associations
+- Prefer `has_many :through` over `has_and_belongs_to_many`
+- Use `optional: true` explicitly when belongs_to is not required
+
+## Controller Best Practices
+
+### Keep Controllers Thin
+```ruby
+# Good - delegate to model/service
+def create
+  @user = User.new(user_params)
+  if @user.save
+    redirect_to @user, notice: "User created"
+  else
+    render :new, status: :unprocessable_entity
+  end
+end
+
+# Bad - business logic in controller
+def create
+  @user = User.new(user_params)
+  @user.email = @user.email.downcase
+  @user.setup_default_preferences
+  if @user.save
+    UserMailer.welcome(@user).deliver_later
+    redirect_to @user, notice: "User created"
+  else
+    render :new, status: :unprocessable_entity
+  end
+end
+```
+
+### Controller Patterns
+- Use strong parameters for all user input
+- Return proper HTTP status codes (422 for validation errors, not 200)
+- Use `before_action` for authentication/authorization
+- Keep actions RESTful when possible
+- Use `respond_to` blocks for multiple formats
+- Never expose model IDs directly in URLs for sensitive resources
+
+## Authentication & Security
+
+### Authentication Rules
+- ALWAYS use Devise with bcrypt (via Warden)
+- NEVER store passwords in plain text
+- Use `reset_session` after successful login (prevent session fixation)
+- Implement account lockout for failed login attempts
+- Store session-sensitive data server-side, not in cookies
+- Use `protect_from_forgery with: :exception` in ApplicationController
+- CSRF (API): All non-GET API requests must include header `X-CSRF-Token` with the `CSRF-TOKEN` cookie value
+- Provide `GET /api/v1/csrf` for SPAs to seed/refresh the CSRF token before first POST
+
+### Devise + Warden (API)
+- JSON login: POST `/api/v1/session` with body `{ "user": { "email": "user@example.com", "password": "..." } }`
+- Controller should authenticate with `warden.authenticate(scope: :user)`; on success `sign_in(:user, user)` and return 200 with `{ data: { user: ... } }`, on failure return 401 `{ error: "Invalid email or password" }`
+- JSON logout: DELETE `/api/v1/session` returns 204 (no content) and clears the session
+- Current user: GET `/api/v1/current_user` returns 200 with `{ data: { user: ... } }` when signed in, otherwise 401
+- After login/logout, refresh CSRF token cookie so subsequent writes remain valid
+- HTML flows may use `valid_password?` and redirects; API must use Warden for consistent strategy behavior
+
+### Security Checklist
+- Sanitize user input (use strong parameters)
+- Escape output (Rails does this by default in ERB)
+- Use parameterized queries (ActiveRecord does this automatically)
+- Enable HTTPS in production (`config.force_ssl = true`)
+- Set secure session cookies (httponly: true, secure: true, same_site: :lax)
+- Validate file uploads if accepting them
+- Rate limit authentication endpoints
+
+## React + Rails Integration
+
+### Hybrid Architecture (Ryan Bigg Pattern)
+- Use ERB for authentication pages (login, signup, password reset)
+- Use React components for interactive app pages (dashboard, forms)
+- Mount React components via ViewComponent
+- Pass data from Rails to React through ViewComponent props
+- Use Rails API endpoints for React component data fetching
+
+### ViewComponent Pattern
+```ruby
+# Good - prepare data in Ruby, pass to React
+class WorkoutTracker::Component < ReactComponent
+  def initialize(user:)
+    super("WorkoutTracker", raw_props: { user: user })
+  end
+
+  def props
+    {
+      userId: raw_props[:user].id,
+      recentWorkouts: raw_props[:user].workouts.recent.map(&:to_json),
+      csrfToken: helpers.form_authenticity_token
+    }
+  end
+end
+```
+
+### API Endpoints for React
+- Create dedicated API namespace (`/api/`) for React components
+- Return JSON responses with proper error handling
+- Include CSRF protection for non-GET requests if enabled for API; otherwise omit
+- Use serializers or Jbuilder for consistent JSON structure
+- Return proper HTTP status codes
+
+## Testing Best Practices
+
+### Test Coverage
+- Write tests for models (validations, methods, scopes)
+- Test authentication flows (login, logout, signup)
+- Test authorization (can users access what they should?)
+- Test API endpoints that React components use
+- Use fixtures or factories (FactoryBot) for test data
+
+### Testing Patterns
+- Use descriptive test names that explain behavior
+- Follow AAA pattern: Arrange, Act, Assert
+- Don't test Rails framework code
+- Test edge cases and error conditions
+- Use system tests for critical user flows
+
+## Performance Best Practices
+
+### Database Performance
+- Add indexes for foreign keys automatically
+- Add indexes for columns used in WHERE, ORDER BY, or JOIN
+- Use `select` to load only needed columns
+- Use `pluck` instead of `map` for single attributes
+- Use counter caches for frequently accessed counts
+- Consider database views for complex queries
+
+### Caching
+- Use fragment caching for expensive view renders
+- Cache expensive calculations at model level
+- Use Rails.cache for application-level caching
+- Consider counter_cache for association counts
+
+### N+1 Queries
+```ruby
+# Good - eager loading
+@users = User.includes(:workouts).limit(10)
+
+# Bad - N+1 query
+@users = User.limit(10)
+@users.each { |user| user.workouts.count }
+```
+
+## Code Organization
+
+### DRY Principle
+- Extract repeated code into methods, concerns, or service objects
+- Use partials for repeated view code
+- Use helpers for view logic
+- Use decorators/presenters for complex view formatting
+- Don't repeat validations - use shared concerns or inheritance
+
+### Service Objects
+- Use for complex business logic
+- Use for multi-model operations
+- Use for external API interactions
+- Keep them focused on a single responsibility
+- Place in `app/services/` directory
+
+### File Structure
+```
+app/
+  components/        # ViewComponents
+  controllers/
+    api/            # API endpoints for React
+    concerns/       # Shared controller logic
+  models/
+    concerns/       # Shared model logic
+  services/         # Business logic objects
+  serializers/      # JSON serialization
+  views/
+    api/           # API JSON views
+```
+
+## Git & Version Control
+
+### Commit Messages
+- Use present tense ("Add feature" not "Added feature")
+- First line under 50 characters
+- Reference issue numbers when applicable
+- Be descriptive about WHY, not just WHAT
+
+### Branch Strategy
+- Create feature branches from main
+- Use descriptive branch names (feature/user-authentication)
+- Keep commits atomic and focused
+- Don't commit commented-out code
+- Don't commit credentials or secrets
+
+## Environment & Configuration
+
+### Environment Variables
+- Use .env files for local development (with dotenv-rails)
+- Never commit .env files
+- Document required env vars in README
+- Use Rails credentials for secrets in production
+- Set different values per environment
+
+### Configuration
+- Use Rails.application.config for app settings
+- Use initializers for gem configuration
+- Keep environment-specific config in config/environments/
+- Use feature flags for gradual rollouts
+
+## Error Handling
+
+### Production Error Handling
+- Use rescue_from in ApplicationController for common errors
+- Log errors with sufficient context
+- Show user-friendly error messages
+- Never expose stack traces to users in production
+- Use error tracking service (Sentry, Rollbar, etc.)
+
+### Validation Errors
+- Return meaningful error messages
+- Use Rails I18n for error messages
+- Return 422 status for validation errors
+- Include field-specific errors in JSON responses
+
+## Documentation
+
+### Code Comments
+- Comment WHY, not WHAT
+- Document complex algorithms or business logic
+- Add TODO comments with context for future work
+- Keep comments up to date with code changes
+
+### README Requirements
+- Setup instructions
+- Environment variable requirements
+- How to run tests
+- How to start the server
+- Deployment instructions
+
+### Rules Maintenance (Meta)
+- When changing an important request flow or how a library is used, update these backend rules to reflect the new canonical approach (endpoints, params shape, status codes, security implications).
+- In Agent mode, ALWAYS review `.cursor/rules/backend/backend-rules.mdc` and related rules before making changes to ensure consistency with project standards.
+- If uncertainty exists about current patterns, prefer searching these rules and existing controllers before introducing new patterns.
+
+## Rails 8 Specific
+
+### Solid Queue (Background Jobs)
+- Use for email sending, data processing
+- Keep jobs idempotent
+- Add retry logic with exponential backoff
+- Log job failures
+
+### Solid Cache
+- Leverage for application caching
+- Set appropriate TTLs
+- Use cache versioning
+
+### Importmap (JavaScript)
+- Pin JavaScript dependencies in importmap.rb
+- Use for Rails-specific JavaScript
+- Use ESBuild for React/TypeScript code
+
+## Common Patterns to Follow
+
+### Authentication Flow
+1. User submits credentials
+2. Controller validates and checks account status
+3. Use reset_session to prevent session fixation
+4. Create session with user ID
+5. Redirect to dashboard
+
+### Form Handling
+1. Display form (GET)
+2. Submit form (POST/PATCH)
+3. Validate with strong parameters
+4. Save or return errors with 422 status
+5. Redirect on success, render on failure
+
+### API Response Format
+```ruby
+# Success
+{ data: { user: { id: 1, name: "John" } } }
+
+# Error
+{ errors: { email: ["can't be blank"] } }
+```
+
+## Anti-Patterns to Avoid
+
+### Don't Do This
+- ❌ Skip database constraints relying only on validations
+- ❌ Put business logic in controllers
+- ❌ Use callbacks for complex workflows (use services)
+- ❌ Return 200 status for validation errors
+- ❌ Rescue Exception (rescue specific errors)
+- ❌ Use string interpolation in SQL queries
+- ❌ Ignore N+1 query warnings
+- ❌ Store sensitive data in sessions
+- ❌ Skip authentication on API endpoints
+- ❌ Use update_attribute (skips validations)
+
+## Deployment Checklist
+
+### Before Deploying
+- [ ] All tests pass
+- [ ] No pending migrations
+- [ ] Environment variables configured
+- [ ] Database backups in place
+- [ ] SSL/HTTPS enabled
+- [ ] Error tracking configured
+- [ ] Logging configured
+- [ ] Performance monitoring enabled
+
+## Project-Specific Rules
+
+### VitalForge Fitness App
+- Use the devise gem
+- Session-based auth (not JWT)
+- React components for workout tracking UI
+- ERB for authentication pages
+- PostgreSQL for data storage
+- Use strong parameters for all workout/exercise data
+- Validate exercise data before saving
+- Track user fitness metrics with proper data types
+
+## Remember
+- Security first - never skip authentication/authorization
+- Data integrity - use database constraints
+- Performance matters - watch for N+1 queries
+- Test your code - especially authentication flows
+- Document complex logic - future you will thank you
+- Keep it simple - don't over-engineer
+- Follow Rails conventions - don't fight the framework
+
+
+
+

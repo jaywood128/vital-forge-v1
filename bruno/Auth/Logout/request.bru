@@ -1,0 +1,14 @@
+meta {
+  name: Logout
+  type: http
+}
+
+request {
+  url: {{baseUrl}}/api/v1/session
+  method: DELETE
+  headers {
+    X-CSRF-Token: {{csrfToken}}
+  }
+}
+
+

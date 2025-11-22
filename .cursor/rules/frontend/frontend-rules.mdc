@@ -1,0 +1,455 @@
+---
+alwaysApply: false
+---
+
+Front End Secuirty 
+
+https://ryanbigg.com/2023/06/rails-7-react-typescript-setup
+
+# Vital Forge Color Palette Reference Guide
+
+A comprehensive guide to the Vital Forge brand color palette with psychological insights, hex values, and Tailwind CSS implementation.
+
+## Brand Overview
+
+**Vital Forge** uses a motivational fitness color palette designed to inspire action, build trust, and represent growth. The palette balances energy with professionalism, creating an environment that motivates users while maintaining credibility.
+
+---
+
+## Primary Colors
+
+### Electric Blue
+- **Color Name**: Electric Blue
+- **Hex Value**: `#2563EB`
+- **RGB**: `rgb(37, 99, 235)`
+- **Psychology**: Trust, focus, concentration, reliability
+- **Use Cases**: Primary brand color, main navigation, trusted actions
+- **Tailwind Classes**:
+  - Background: `bg-blue-600`
+  - Text: `text-blue-600`
+  - Border: `border-blue-600`
+  - Hover: `hover:bg-blue-700`
+
+### Energetic Orange
+- **Color Name**: Energetic Orange
+- **Hex Value**: `#F97316`
+- **RGB**: `rgb(249, 115, 22)`
+- **Psychology**: Motivation, enthusiasm, energy, immediate action
+- **Use Cases**: Call-to-action buttons, accent elements, progress indicators
+- **Tailwind Classes**:
+  - Background: `bg-orange-500`
+  - Text: `text-orange-500`
+  - Border: `border-orange-500`
+  - Hover: `hover:bg-orange-600`
+
+---
+
+## Secondary Colors
+
+### Deep Navy
+- **Color Name**: Deep Navy
+- **Hex Value**: `#1E293B`
+- **RGB**: `rgb(30, 41, 59)`
+- **Psychology**: Professional, stable, sophisticated
+- **Use Cases**: Dark backgrounds, headers, professional text
+- **Tailwind Classes**:
+  - Background: `bg-slate-800`
+  - Text: `text-slate-800`
+  - Border: `border-slate-800`
+
+### Fresh Green
+- **Color Name**: Fresh Green
+- **Hex Value**: `#10B981`
+- **RGB**: `rgb(16, 185, 129)`
+- **Psychology**: Growth, balance, harmony, progress, health
+- **Use Cases**: Success messages, progress bars, achievement indicators
+- **Tailwind Classes**:
+  - Background: `bg-emerald-500`
+  - Text: `text-emerald-500`
+  - Border: `border-emerald-500`
+  - Hover: `hover:bg-emerald-600`
+
+### Warm Gray
+- **Color Name**: Warm Gray
+- **Hex Value**: `#F1F5F9`
+- **RGB**: `rgb(241, 245, 249)`
+- **Psychology**: Clean, neutral, calming
+- **Use Cases**: Light backgrounds, card backgrounds, subtle sections
+- **Tailwind Classes**:
+  - Background: `bg-slate-100`
+  - Text: `text-slate-100`
+  - Border: `border-slate-100`
+
+---
+
+## Accent Colors
+
+### Bright Red
+- **Color Name**: Bright Red
+- **Hex Value**: `#EF4444`
+- **RGB**: `rgb(239, 68, 68)`
+- **Psychology**: Urgency, warning, immediate attention
+- **Use Cases**: Error messages, delete buttons, urgent alerts
+- **Tailwind Classes**:
+  - Background: `bg-red-500`
+  - Text: `text-red-500`
+  - Border: `border-red-500`
+  - Hover: `hover:bg-red-600`
+
+### Light Blue
+- **Color Name**: Light Blue
+- **Hex Value**: `#DBEAFE`
+- **RGB**: `rgb(219, 234, 254)`
+- **Psychology**: Calm, subtle, supportive
+- **Use Cases**: Hover states, subtle highlights, disabled states
+- **Tailwind Classes**:
+  - Background: `bg-blue-100`
+  - Text: `text-blue-100`
+  - Border: `border-blue-100`
+
+---
+
+## Neutral Colors
+
+### Pure White
+- **Color Name**: Pure White
+- **Hex Value**: `#FFFFFF`
+- **RGB**: `rgb(255, 255, 255)`
+- **Psychology**: Clean, pure, simple
+- **Use Cases**: Text on dark backgrounds, clean backgrounds, cards
+- **Tailwind Classes**:
+  - Background: `bg-white`
+  - Text: `text-white`
+  - Border: `border-white`
+
+### Medium Gray
+- **Color Name**: Medium Gray
+- **Hex Value**: `#64748B`
+- **RGB**: `rgb(100, 116, 139)`
+- **Psychology**: Neutral, balanced, professional
+- **Use Cases**: Secondary text, subtle borders, inactive elements
+- **Tailwind Classes**:
+  - Background: `bg-slate-500`
+  - Text: `text-slate-500`
+  - Border: `border-slate-500`
+
+### Dark Charcoal
+- **Color Name**: Dark Charcoal
+- **Hex Value**: `#0F172A`
+- **RGB**: `rgb(15, 23, 42)`
+- **Psychology**: Strong, grounding, sophisticated
+- **Use Cases**: Text on light backgrounds, dark mode backgrounds
+- **Tailwind Classes**:
+  - Background: `bg-slate-900`
+  - Text: `text-slate-900`
+  - Border: `border-slate-900`
+
+---
+
+## Color Combinations & Usage Guidelines
+
+### Primary Combinations
+```css
+/* Main Call-to-Action */
+bg-orange-500 hover:bg-orange-600 text-white
+
+/* Secondary Action */
+bg-blue-600 hover:bg-blue-700 text-white
+
+/* Neutral Action */
+bg-slate-100 hover:bg-slate-200 text-slate-800
+```
+
+### Enhanced Background Gradients
+```css
+/* Premium Hero Sections */
+bg-gradient-to-br from-slate-800 via-slate-700 to-blue-900
+
+/* Subtle Card Backgrounds */
+bg-gradient-to-r from-blue-50 to-orange-50
+
+/* Success Elements with Depth */
+bg-gradient-to-r from-emerald-500 to-blue-500
+
+/* Advanced Button Gradients */
+bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700
+
+/* Dark Mode Gradients */
+bg-gradient-to-r from-slate-700 to-slate-800
+
+/* Glow Effect Gradients */
+bg-gradient-to-r from-orange-400 to-orange-600 (for blur overlay)
+```
+
+### Text Combinations
+```css
+/* High Contrast */
+text-white on bg-slate-800
+text-slate-900 on bg-white
+
+/* Medium Contrast */
+text-slate-600 on bg-slate-100
+text-blue-600 on bg-blue-50
+
+/* Accent Text */
+text-orange-500 on bg-white
+text-emerald-500 on bg-slate-800
+```
+
+---
+
+## Accessibility Guidelines
+
+### Contrast Ratios
+- **White text on Deep Navy**: 15.3:1 (AAA)
+- **Deep Navy text on White**: 15.3:1 (AAA)
+- **Orange on White**: 4.8:1 (AA)
+- **Blue on White**: 8.6:1 (AAA)
+- **Green on White**: 3.9:1 (AA Large)
+
+### Usage Recommendations
+- Use **white or very light text** on dark backgrounds
+- Use **dark text** on light backgrounds
+- Ensure **orange buttons have sufficient contrast** for accessibility
+- Test with **color blindness simulators** before finalizing designs
+
+---
+
+## Brand Application Examples
+
+### Enhanced Button Styles
+
+#### Primary Action Buttons
+```html
+<!-- Premium Primary Button with Icon -->
+<button class="group relative bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-8 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-orange-400/50">
+  <span class="relative z-10 flex items-center gap-2">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+    </svg>
+    Start Workout
+  </span>
+  <div class="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+</button>
+
+<!-- Blue Primary Button -->
+<button class="group relative bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-4 px-8 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-blue-500/50">
+  <span class="relative z-10 flex items-center gap-2">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+    View Progress
+  </span>
+  <div class="absolute inset-0 bg-white/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+</button>
+```
+
+#### Secondary Action Buttons
+```html
+<!-- Clean Secondary Button -->
+<button class="group relative bg-white hover:bg-gray-50 text-slate-700 font-medium py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-gray-200/50">
+  <span class="relative z-10 flex items-center gap-2">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    Learn More
+  </span>
+  <div class="absolute inset-0 bg-gradient-to-r from-blue-50 to-orange-50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+</button>
+
+<!-- Outlined Secondary Button -->
+<button class="group relative bg-transparent hover:bg-blue-50 text-blue-600 hover:text-blue-700 font-medium py-3 px-6 rounded-xl border-2 border-blue-600 hover:border-blue-700 transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg">
+  <span class="relative z-10 flex items-center gap-2">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+    Secondary Action
+  </span>
+</button>
+```
+
+#### Status & Action Buttons
+```html
+<!-- Success Status Button -->
+<button class="group relative bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-emerald-400/50">
+  <span class="relative z-10 flex items-center gap-2">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+    Completed
+  </span>
+  <div class="absolute inset-0 bg-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+</button>
+
+<!-- Warning Status Button -->
+<button class="group relative bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-orange-400/50">
+  <span class="relative z-10 flex items-center gap-2">
+    <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+    </svg>
+    In Progress
+  </span>
+  <div class="absolute inset-0 bg-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+</button>
+
+<!-- Danger Action Button -->
+<button class="group relative bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-red-400/50">
+  <span class="relative z-10 flex items-center gap-2">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+    </svg>
+    Delete
+  </span>
+  <div class="absolute inset-0 bg-white/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+</button>
+```
+
+#### Advanced Button Effects
+```html
+<!-- Glow Effect Button -->
+<button class="group relative overflow-hidden bg-gradient-to-r from-orange-500 via-orange-600 to-orange-700 text-white font-bold py-4 px-8 rounded-2xl shadow-2xl hover:shadow-orange-500/25 transition-all duration-500 transform hover:scale-110 active:scale-95">
+  <span class="relative z-10">Premium Action</span>
+  <div class="absolute inset-0 bg-gradient-to-r from-orange-400 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl"></div>
+  <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
+</button>
+
+<!-- Dark Mode Button -->
+<button class="group relative bg-slate-800 hover:bg-slate-900 text-white font-semibold py-4 px-8 rounded-2xl shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-slate-600">
+  <span class="relative z-10 flex items-center gap-2">
+    <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+    Dark Mode Action
+  </span>
+  <div class="absolute inset-0 bg-gradient-to-r from-slate-700 to-slate-800 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+</button>
+```
+
+### Enhanced Cards with Glassmorphism
+```html
+<!-- Premium Feature Card -->
+<div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105">
+  <div class="w-12 h-12 bg-emerald-500 rounded-lg flex items-center justify-center mb-4 shadow-lg">
+    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+  </div>
+  <h3 class="text-white font-bold text-lg mb-2">Track Progress</h3>
+  <p class="text-gray-300 text-sm">Monitor your growth and celebrate every milestone on your fitness journey.</p>
+</div>
+
+<!-- Light Theme Card with Enhanced Shadows -->
+<div class="bg-white rounded-xl p-6 shadow-xl hover:shadow-2xl border border-gray-100 transition-all duration-300 transform hover:scale-105">
+  <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center mb-4 shadow-lg">
+    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+    </svg>
+  </div>
+  <h4 class="font-bold text-gray-900 mb-2">Stay Motivated</h4>
+  <p class="text-gray-600 text-sm">Get daily inspiration and reminders to keep pushing toward your goals.</p>
+</div>
+```
+
+### Status Indicators
+```html
+<!-- Success -->
+<div class="bg-emerald-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+  Completed
+</div>
+
+<!-- Warning -->
+<div class="bg-orange-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+  In Progress
+</div>
+
+<!-- Error -->
+<div class="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+  Failed
+</div>
+```
+
+---
+
+## Enhanced Design Principles
+
+### Modern Button Architecture
+- **Layered Effects**: Use `group` classes with relative/absolute positioning for complex hover states
+- **Transform Interactions**: Implement `hover:scale-105` and `active:scale-95` for tactile feedback
+- **Enhanced Shadows**: Combine `shadow-xl` with `hover:shadow-2xl` for depth
+- **Gradient Foundations**: Replace flat colors with gradients for visual richness
+- **Border Accents**: Add subtle borders with opacity (`border-orange-400/50`) for definition
+- **Icon Integration**: Include relevant SVG icons for better UX and visual hierarchy
+
+### Interaction Patterns
+```css
+/* Standard Interactive Element */
+.interactive-element {
+  @apply transition-all duration-300 transform hover:scale-105 active:scale-95;
+}
+
+/* Premium Shadow Pattern */
+.premium-shadow {
+  @apply shadow-xl hover:shadow-2xl;
+}
+
+/* Glassmorphism Pattern */
+.glass-effect {
+  @apply bg-white/10 backdrop-blur-sm border border-white/20;
+}
+
+/* Hover Overlay Pattern */
+.hover-overlay {
+  @apply relative overflow-hidden;
+}
+.hover-overlay::after {
+  @apply absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300;
+}
+```
+
+### Animation Guidelines
+- **Micro-interactions**: Use 200-300ms transitions for standard interactions
+- **Premium effects**: Use 500ms+ for special animations (glow, shimmer)
+- **Scale transforms**: Keep between 1.05-1.1 for hover, 0.95 for active
+- **Stagger animations**: Use different durations for layered effects
+- **Easing**: Default to `ease-out` for natural feeling animations
+
+### Accessibility Enhancements
+- **Focus states**: Ensure all interactive elements have visible focus indicators
+- **Motion sensitivity**: Provide `prefers-reduced-motion` alternatives
+- **Color independence**: Don't rely solely on color for status communication
+- **Touch targets**: Maintain minimum 44px touch targets on mobile
+- **Contrast ratios**: Test enhanced shadows don't compromise text contrast
+
+## Quick Reference Tailwind Classes
+
+### Enhanced Interactive Classes
+- **Premium Primary Button**: `group relative bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold py-4 px-8 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-orange-400/50`
+- **Enhanced Secondary Button**: `group relative bg-white hover:bg-gray-50 text-slate-700 font-medium py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-gray-200/50`
+- **Outlined Button**: `group relative bg-transparent hover:bg-blue-50 text-blue-600 hover:text-blue-700 font-medium py-3 px-6 rounded-xl border-2 border-blue-600 hover:border-blue-700 transition-all duration-300 transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg`
+- **Status Badge**: `group relative bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-4 py-2 rounded-full text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 active:scale-95 border border-emerald-400/50`
+- **Glassmorphism Card**: `bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 shadow-xl hover:shadow-2xl transform hover:scale-105`
+- **Premium Light Card**: `bg-white rounded-xl p-6 shadow-xl hover:shadow-2xl border border-gray-100 transition-all duration-300 transform hover:scale-105`
+
+### Advanced Effect Classes
+- **Glow Effect**: `shadow-2xl hover:shadow-orange-500/25`
+- **Shimmer Animation**: `bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12`
+- **Blur Overlay**: `bg-gradient-to-r from-orange-400 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-xl`
+- **Hover Overlay**: `absolute inset-0 bg-white/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300`
+
+### Color Opacity Variations
+- **10% Opacity**: `bg-blue-600/10`
+- **20% Opacity**: `bg-orange-500/20`
+- **50% Opacity**: `bg-emerald-500/50`
+- **80% Opacity**: `bg-slate-800/80`
+
+---
+
+*This color palette was designed based on fitness industry color psychology research to maximize motivation, trust, and user engagement while maintaining excellent accessibility standards.*
+
+---
+
+## Rules Maintenance (Meta)
+
+- When changing critical request flows or frontend library usage (e.g., how CSRF headers are sent, how sessions/cookies are handled, or HTTP client patterns), update this frontend rules document with the new canonical approach.
+- In Agent mode, ALWAYS review `.cursor/rules/frontend/frontend-rules.mdc` and `.cursor/rules/backend/backend-rules.mdc` before making changes to ensure consistency across frontend and backend.
+- For non-GET requests to Rails endpoints protected by CSRF, include `X-CSRF-Token` from the `CSRF-TOKEN` cookie. Always send `credentials: 'include'` so the browser sends the session cookie.
+- SPA CSRF bootstrap: Call `GET /api/v1/csrf` first to set `CSRF-TOKEN` cookie before the first POST (login).
+- Prefer consistent fetch/HTTP helpers that centralize headers, error handling, and credential behavior (`credentials: 'include'` for session cookies).

@@ -1,0 +1,22 @@
+meta {
+  name: Login
+  type: http
+}
+
+request {
+  url: {{baseUrl}}/api/v1/session
+  method: POST
+  headers {
+    Content-Type: application/json
+    X-CSRF-Token: {{csrfToken}}
+  }
+  body: json
+  json: {
+    "user": {
+      "email": "{{email}}",
+      "password": "{{password}}"
+    }
+  }
+}
+
+

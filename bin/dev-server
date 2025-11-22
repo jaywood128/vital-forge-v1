@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# Ensure correct Ruby version is loaded
+source ~/.zshrc
+
+# Start Rails server
+bin/rails server "$@"
+

@@ -1,0 +1,26 @@
+# Diagrams Directory
+
+This directory stores visual diagrams for VitalForge documentation.
+
+## Planned Diagrams
+
+- `erd.png` / `erd.svg` - Entity Relationship Diagram (database schema)
+- `architecture.png` - System architecture overview
+- `user-flows.png` - User interaction flows
+- `deployment.png` - Deployment architecture
+
+## Generating ERD
+
+Use rails-erd gem:
+```bash
+gem 'rails-erd', group: :development
+bundle exec erd --filename=docs/diagrams/erd
+```
+
+Or create manually using:
+- dbdiagram.io
+- draw.io
+- lucidchart
+
+See [/docs/README.md](../README.md) for detailed instructions.
+

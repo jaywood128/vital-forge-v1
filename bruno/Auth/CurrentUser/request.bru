@@ -1,0 +1,14 @@
+meta {
+  name: CurrentUser
+  type: http
+}
+
+request {
+  url: {{baseUrl}}/api/v1/current_user
+  method: GET
+  headers {
+    Accept: application/json
+  }
+}
+
+

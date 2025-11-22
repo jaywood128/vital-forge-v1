@@ -1,0 +1,28 @@
+class Api::V1::BaseController < ApplicationController
+  respond_to :json
+  skip_before_action :verify_authenticity_token, if: -> { request.format.json? && request.get? }
+  skip_before_action :require_authentication
+
+  rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
+  rescue_from ActiveRecord::RecordInvalid, with: :render_unprocessable
+
+  before_action :require_api_authentication
+
+  private
+
+  def require_api_authentication
+    return if logged_in?
+
+    render json: { error: "Authentication required" }, status: :unauthorized
+  end
+
+  def render_not_found(e)
+    render json: { error: e.message }, status: :not_found
+  end
+
+  def render_unprocessable(e)
+    render json: { errors: e.record.errors.to_hash(true) }, status: :unprocessable_entity
+  end
+end
+
+

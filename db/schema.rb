@@ -1,0 +1,106 @@
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It's strongly recommended that you check this file into your version control system.
+
+ActiveRecord::Schema[8.0].define(version: 2025_11_14_001000) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
+  create_table "exercise_sets", force: :cascade do |t|
+    t.bigint "workout_exercise_id", null: false
+    t.integer "set_number", null: false
+    t.integer "reps", null: false
+    t.decimal "weight", precision: 6, scale: 2
+    t.string "weight_unit", default: "lbs"
+    t.integer "rest_after_seconds"
+    t.integer "rpe"
+    t.boolean "to_failure", default: false
+    t.text "notes"
+    t.boolean "completed", default: true
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["workout_exercise_id", "set_number"], name: "index_exercise_sets_on_workout_exercise_and_number"
+    t.index ["workout_exercise_id", "set_number"], name: "unique_set_number_per_exercise", unique: true
+    t.index ["workout_exercise_id"], name: "index_exercise_sets_on_workout_exercise_id"
+  end
+
+  create_table "exercises", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.string "exercise_type", null: false
+    t.string "equipment", null: false
+    t.string "muscle_group"
+    t.string "difficulty_level"
+    t.text "instructions"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["equipment"], name: "index_exercises_on_equipment"
+    t.index ["exercise_type"], name: "index_exercises_on_exercise_type"
+    t.index ["muscle_group"], name: "index_exercises_on_muscle_group"
+    t.index ["name"], name: "index_exercises_on_name", unique: true
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "email", null: false
+    t.string "password_digest"
+    t.string "first_name"
+    t.string "last_name"
+    t.integer "failed_login_attempts", default: 0, null: false
+    t.datetime "locked_at"
+    t.datetime "last_login_at"
+    t.string "password_reset_token"
+    t.datetime "password_reset_sent_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.datetime "remember_created_at"
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["password_reset_token"], name: "index_users_on_password_reset_token", unique: true
+  end
+
+  create_table "workout_exercises", force: :cascade do |t|
+    t.bigint "workout_id", null: false
+    t.bigint "exercise_id", null: false
+    t.integer "order_position", default: 0, null: false
+    t.text "notes"
+    t.integer "rest_between_sets"
+    t.boolean "completed", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["exercise_id"], name: "index_workout_exercises_on_exercise_id"
+    t.index ["workout_id", "order_position"], name: "index_workout_exercises_on_workout_and_order"
+    t.index ["workout_id"], name: "index_workout_exercises_on_workout_id"
+  end
+
+  create_table "workouts", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.datetime "workout_date", null: false
+    t.integer "duration_minutes"
+    t.string "workout_type"
+    t.integer "calories_burned"
+    t.text "notes"
+    t.integer "intensity_level"
+    t.boolean "completed", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["completed"], name: "index_workouts_on_completed"
+    t.index ["user_id", "workout_date"], name: "index_workouts_on_user_and_date"
+    t.index ["user_id"], name: "index_workouts_on_user_id"
+    t.index ["workout_type"], name: "index_workouts_on_workout_type"
+  end
+
+  add_foreign_key "exercise_sets", "workout_exercises", on_delete: :cascade
+  add_foreign_key "workout_exercises", "exercises"
+  add_foreign_key "workout_exercises", "workouts", on_delete: :cascade
+  add_foreign_key "workouts", "users", on_delete: :cascade
+end
