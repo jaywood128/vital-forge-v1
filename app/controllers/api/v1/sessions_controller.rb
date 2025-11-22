@@ -22,8 +22,9 @@ class Api::V1::SessionsController < Devise::SessionsController
   end
 
   def destroy
-    sign_out(resource_name)
+    sign_out(resource_name) if signed_in?(resource_name)
     session.delete(:user_id)
+    @current_user = nil
     reset_session
     set_fresh_csrf_cookie
     head :no_content
@@ -35,7 +36,10 @@ class Api::V1::SessionsController < Devise::SessionsController
     cookies["CSRF-TOKEN"] = {
       value: form_authenticity_token,
       secure: Rails.env.production?,
-      same_site: :lax
+      # We use :none in production to allow the cookie to be sent in cross-site requests
+      # (e.g. from Next.js frontend to Rails API).
+      # In development, :lax is sufficient and safer for localhost.
+      same_site: Rails.env.production? ? :none : :lax
     }
   end
 

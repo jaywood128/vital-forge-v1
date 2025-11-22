@@ -5,10 +5,15 @@ A modern fitness tracking application built with Ruby on Rails 8, PostgreSQL, an
 ## 🚀 Features
 
 ### Current Features (v1.0)
-- ✅ **User Authentication** - Secure session-based authentication with bcrypt
+- ✅ **User Authentication** - Secure session-based authentication with Devise + bcrypt
+- ✅ **Cross-Origin API** - CORS-enabled API for Next.js frontend integration
+- ✅ **CSRF Protection** - Secure token-based CSRF protection for API requests
+- ✅ **API Documentation** - Auto-generated Swagger/OpenAPI docs at `/api-docs`
 - ✅ **Account Security** - Account lockout after failed login attempts
 - ✅ **Modern UI** - Glassmorphism design with VitalForge brand colors
 - ✅ **Responsive Design** - Mobile-first approach
+- ✅ **Test Coverage** - 38% coverage with RSpec (13 passing tests)
+- ✅ **Code Quality** - RuboCop linting, Brakeman security scanning
 - ✅ **Password Reset** - Secure password reset tokens (database ready)
 
 ### Planned Features
@@ -21,10 +26,11 @@ A modern fitness tracking application built with Ruby on Rails 8, PostgreSQL, an
 ## 🛠 Technology Stack
 
 ### Backend
-- **Ruby** 3.2.2
+- **Ruby** 3.2.6
 - **Rails** 8.0.2
 - **PostgreSQL** - Primary database
 - **bcrypt** - Password encryption
+- **Devise** - Authentication framework
 
 ### Frontend
 - **React** 18.2+ (planned)
@@ -68,7 +74,7 @@ User → Workouts → WorkoutExercises → ExerciseSets
 
 Before you begin, ensure you have the following installed:
 
-- **Ruby** 3.2.2 (use RVM, rbenv, or mise)
+- **Ruby** 3.2.6 (use RVM recommended)
 - **Rails** 8.0.2
 - **PostgreSQL** 14+
 - **Node.js** 18+ (for JavaScript tooling)
@@ -77,11 +83,28 @@ Before you begin, ensure you have the following installed:
 
 ### Check Your Versions
 ```bash
-ruby -v        # Should show: ruby 3.2.2
+ruby -v        # Should show: ruby 3.2.6
 rails -v       # Should show: Rails 8.0.2
 psql --version # Should show: psql 14.x or higher
 node -v        # Should show: v18.x or higher
 ```
+
+### Quick Start (5 minutes)
+```bash
+# 1. Install dependencies
+bundle install
+
+# 2. Setup database
+bin/rails db:create db:migrate db:seed
+
+# 3. Start server
+bin/dev
+
+# 4. Visit http://localhost:3000
+# 5. View API docs at http://localhost:3000/api-docs
+```
+
+**For detailed setup and architecture guide, see [SETUP_GUIDE.md](SETUP_GUIDE.md)** 🎓
 
 ## 🚀 Getting Started
 
@@ -95,7 +118,7 @@ cd vital-forge-v1
 
 #### Ruby Dependencies
 ```bash
-# Ensure you're using Ruby 3.2.2
+# Ensure you're using Ruby 3.2.6
 source ~/.zshrc  # or source ~/.bashrc
 ruby -v
 
@@ -165,8 +188,22 @@ You should see the VitalForge landing page! 🎉
 
 ## 📖 Documentation
 
+**📚 [Documentation Map](docs/DOCUMENTATION_MAP.md)** - Visual guide to all documentation
+
 Comprehensive documentation is available in the project:
 
+### 🎯 Start Here
+- **[ONBOARDING_CHECKLIST.md](ONBOARDING_CHECKLIST.md)** - ✅ 4-week roadmap for new developers
+- **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - 📊 High-level overview of what we built and why
+- **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - 🎓 Complete architecture guide, learning resources, and next steps
+- **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - ⚡ Common commands and workflows (bookmark this!)
+
+### 📚 Deep Dives
+- **[AUTH_ARCHITECTURE.md](AUTH_ARCHITECTURE.md)** - Authentication system deep-dive
+- **[API_DOCUMENTATION_GUIDE.md](API_DOCUMENTATION_GUIDE.md)** - How to document APIs with Rswag
+- **[CODE_QUALITY.md](CODE_QUALITY.md)** - Testing, linting, and quality tools
+
+### 🛠 Development
 - **[DEVELOPMENT.md](DEVELOPMENT.md)** - Development workflow and commands
 - **[MIGRATIONS_GUIDE.md](MIGRATIONS_GUIDE.md)** - Database migration patterns
 - **[STYLING_UPDATE.md](STYLING_UPDATE.md)** - Design system and colors
@@ -265,37 +302,51 @@ DATABASE_PASSWORD=your-password
 RAILS_ENV=production
 SECRET_KEY_BASE=your-secret-key
 
+# CORS (for Next.js frontend)
+ALLOWED_ORIGINS=https://your-nextjs-app.com,https://staging.your-nextjs-app.com
+
 # Email (future)
 SMTP_HOST=smtp.example.com
 SMTP_USERNAME=your-username
 SMTP_PASSWORD=your-password
 ```
 
+**For development:**
+- `ALLOWED_ORIGINS` defaults to `http://localhost:3001`
+- Database credentials can be set in `.env` (not committed to git)
+
 ## 🧪 Testing
 
 ```bash
-# Run all tests
-bin/rails test
+# Run all tests (RSpec)
+bundle exec rspec
 
 # Run specific test file
-bin/rails test test/models/user_test.rb
+bundle exec rspec spec/requests/api/v1/auth_spec.rb
 
-# Run with verbose output
-bin/rails test -v
+# Run with documentation format
+bundle exec rspec --format documentation
 
-# Run system tests
-bin/rails test:system
+# View test coverage
+open coverage/index.html
 ```
+
+**Current test coverage: 38.31%** (13 passing tests)
+
+**For detailed testing guide, see [CODE_QUALITY.md](CODE_QUALITY.md)**
 
 ## 🔍 Code Quality
 
 ### Linting
 ```bash
-# Run RuboCop
-bin/rubocop
+# Run RuboCop (Rails Omakase style)
+bundle exec rubocop
 
 # Auto-fix issues
-bin/rubocop -a
+bundle exec rubocop -a
+
+# Generate JSON report for SonarCloud
+bundle exec rubocop --format json --out rubocop-result.json
 ```
 
 ### Security Scanning
@@ -303,6 +354,17 @@ bin/rubocop -a
 # Run Brakeman security scanner
 bin/brakeman
 ```
+
+### API Documentation
+```bash
+# Generate Swagger/OpenAPI docs from tests
+RAILS_ENV=test bundle exec rake rswag:specs:swaggerize
+
+# View interactive docs
+open http://localhost:3000/api-docs
+```
+
+**For detailed code quality guide, see [CODE_QUALITY.md](CODE_QUALITY.md)**
 
 ## 📊 Database Commands
 
@@ -412,7 +474,7 @@ See [.cursorrules](.cursorrules) for complete coding standards.
 **Solution:**
 ```bash
 source ~/.zshrc
-ruby -v  # Verify it shows 3.2.2
+ruby -v  # Verify it shows 3.2.6
 bin/rails server
 ```
 
