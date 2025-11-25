@@ -28,7 +28,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
       it 'authenticates user with valid JWT token' do
         request.headers['Authorization'] = "Bearer #{jwt_token}"
         get :index
-        
+
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
         expect(json['user_id']).to eq(user.id)
@@ -38,7 +38,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
       it 'sets @auth_method to :jwt' do
         request.headers['Authorization'] = "Bearer #{jwt_token}"
         get :index
-        
+
         json = JSON.parse(response.body)
         expect(json['auth_method']).to eq('jwt')
       end
@@ -46,7 +46,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
       it 'returns 401 with invalid JWT token' do
         request.headers['Authorization'] = 'Bearer invalid_token_here'
         get :index
-        
+
         expect(response).to have_http_status(:unauthorized)
         json = JSON.parse(response.body)
         expect(json['error']).to eq('Authentication required')
@@ -56,28 +56,28 @@ RSpec.describe DualAuthenticatable, type: :controller do
         expired_token = AuthToken.for_user(user, expires_in: -1.hour)
         request.headers['Authorization'] = "Bearer #{expired_token}"
         get :index
-        
+
         expect(response).to have_http_status(:unauthorized)
       end
 
       it 'returns 401 with malformed authorization header' do
         request.headers['Authorization'] = 'InvalidFormat'
         get :index
-        
+
         expect(response).to have_http_status(:unauthorized)
       end
 
       it 'returns 401 with empty bearer token' do
         request.headers['Authorization'] = 'Bearer '
         get :index
-        
+
         expect(response).to have_http_status(:unauthorized)
       end
 
       it 'handles JWT decode errors gracefully' do
         request.headers['Authorization'] = 'Bearer not.a.valid.jwt'
         get :index
-        
+
         expect(response).to have_http_status(:unauthorized)
       end
     end
@@ -90,7 +90,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
 
       it 'authenticates user with valid session' do
         get :index
-        
+
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
         expect(json['user_id']).to eq(user.id)
@@ -99,7 +99,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
 
       it 'sets @auth_method to :session' do
         get :index
-        
+
         json = JSON.parse(response.body)
         expect(json['auth_method']).to eq('session')
       end
@@ -107,14 +107,14 @@ RSpec.describe DualAuthenticatable, type: :controller do
       it 'returns 401 with invalid session user_id' do
         session[:user_id] = 99999
         get :index
-        
+
         expect(response).to have_http_status(:unauthorized)
       end
 
       it 'returns 401 with nil session user_id' do
         session[:user_id] = nil
         get :index
-        
+
         expect(response).to have_http_status(:unauthorized)
       end
     end
@@ -124,7 +124,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
         session[:user_id] = user.id
         request.headers['Authorization'] = "Bearer #{jwt_token}"
         get :index
-        
+
         json = JSON.parse(response.body)
         expect(json['auth_method']).to eq('jwt')
       end
@@ -133,7 +133,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
         session[:user_id] = user.id
         request.headers['Authorization'] = 'Bearer invalid_token'
         get :index
-        
+
         json = JSON.parse(response.body)
         expect(json['auth_method']).to eq('session')
       end
@@ -142,7 +142,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
     context 'without any authentication' do
       it 'returns 401 when no auth provided' do
         get :index
-        
+
         expect(response).to have_http_status(:unauthorized)
         json = JSON.parse(response.body)
         expect(json['error']).to eq('Authentication required')
@@ -154,7 +154,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
     it 'returns the authenticated user via JWT' do
       request.headers['Authorization'] = "Bearer #{jwt_token}"
       get :index
-      
+
       json = JSON.parse(response.body)
       expect(json['user_id']).to eq(user.id)
     end
@@ -162,14 +162,14 @@ RSpec.describe DualAuthenticatable, type: :controller do
     it 'returns the authenticated user via session' do
       session[:user_id] = user.id
       get :index
-      
+
       json = JSON.parse(response.body)
       expect(json['user_id']).to eq(user.id)
     end
 
     it 'returns nil when not authenticated' do
       get :index
-      
+
       expect(response).to have_http_status(:unauthorized)
     end
   end
@@ -178,7 +178,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
     it 'returns :jwt for JWT authentication' do
       request.headers['Authorization'] = "Bearer #{jwt_token}"
       get :index
-      
+
       json = JSON.parse(response.body)
       expect(json['auth_method']).to eq('jwt')
     end
@@ -186,7 +186,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
     it 'returns :session for session authentication' do
       session[:user_id] = user.id
       get :index
-      
+
       json = JSON.parse(response.body)
       expect(json['auth_method']).to eq('session')
     end
@@ -197,7 +197,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
       session[:user_id] = user.id
       user.destroy
       get :index
-      
+
       expect(response).to have_http_status(:unauthorized)
     end
 
@@ -206,7 +206,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
       user.destroy
       request.headers['Authorization'] = "Bearer #{token}"
       get :index
-      
+
       expect(response).to have_http_status(:unauthorized)
     end
 
@@ -215,7 +215,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
       token = JWT.encode(payload, Rails.application.credentials.secret_key_base, 'HS256')
       request.headers['Authorization'] = "Bearer #{token}"
       get :index
-      
+
       expect(response).to have_http_status(:unauthorized)
     end
 
@@ -224,9 +224,8 @@ RSpec.describe DualAuthenticatable, type: :controller do
       token = JWT.encode(payload, 'wrong_secret', 'HS256')
       request.headers['Authorization'] = "Bearer #{token}"
       get :index
-      
+
       expect(response).to have_http_status(:unauthorized)
     end
   end
 end
-

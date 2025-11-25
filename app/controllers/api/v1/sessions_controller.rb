@@ -55,5 +55,3 @@ class Api::V1::SessionsController < Devise::SessionsController
     render json: { error: "User is already signed out" }, status: :unauthorized
   end
 end
-
-

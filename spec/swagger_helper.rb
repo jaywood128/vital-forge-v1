@@ -135,4 +135,3 @@ RSpec.configure do |config|
   # the key, this may want to be changed to avoid putting yaml in json files
   config.swagger_format = :yaml
 end
-

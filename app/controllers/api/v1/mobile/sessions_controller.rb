@@ -3,7 +3,7 @@
 # Mobile authentication controller
 # Handles login/logout for mobile apps using JWT tokens
 class Api::V1::Mobile::SessionsController < Api::V1::Mobile::BaseController
-  skip_before_action :authenticate_mobile_user!, only: [:create]
+  skip_before_action :authenticate_mobile_user!, only: [ :create ]
 
   # POST /api/v1/mobile/login
   # Returns JWT token for mobile authentication
@@ -53,4 +53,3 @@ class Api::V1::Mobile::SessionsController < Api::V1::Mobile::BaseController
     }
   end
 end
-

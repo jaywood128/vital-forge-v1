@@ -18,14 +18,14 @@ RSpec.describe AuthToken, type: :service do
       it 'generates token with custom expiration' do
         token = AuthToken.for_user(user, expires_in: 1.hour)
         decoded = AuthToken.decode(token)
-        
+
         expect(decoded['exp']).to be_within(5).of(1.hour.from_now.to_i)
       end
 
       it 'includes issued at time' do
         token = AuthToken.for_user(user)
         decoded = AuthToken.decode(token)
-        
+
         expect(decoded['iat']).to be_within(5).of(Time.now.to_i)
       end
     end
@@ -46,7 +46,7 @@ RSpec.describe AuthToken, type: :service do
       it 'returns nil for token with invalid signature' do
         payload = { sub: user.id, exp: 24.hours.from_now.to_i }
         token = JWT.encode(payload, 'wrong_secret', 'HS256')
-        
+
         expect(AuthToken.verify(token)).to be_nil
       end
 
@@ -58,14 +58,14 @@ RSpec.describe AuthToken, type: :service do
       it 'returns nil for token with non-existent user' do
         token = AuthToken.for_user(user)
         user.destroy
-        
+
         expect(AuthToken.verify(token)).to be_nil
       end
 
       it 'returns nil for token without sub claim' do
         payload = { email: user.email, exp: 24.hours.from_now.to_i }
         token = JWT.encode(payload, Rails.application.credentials.secret_key_base, 'HS256')
-        
+
         expect(AuthToken.verify(token)).to be_nil
       end
     end
@@ -86,7 +86,7 @@ RSpec.describe AuthToken, type: :service do
       it 'returns Hash for valid token' do
         token = AuthToken.for_user(user)
         decoded = AuthToken.decode(token)
-        
+
         expect(decoded).to be_a(Hash)
         expect(decoded['sub']).to eq(user.id)
       end
@@ -164,7 +164,7 @@ RSpec.describe AuthToken, type: :service do
 
       it 'returns Time object for valid token' do
         token = AuthToken.for_user(user, expires_in: 2.hours)
-        
+
         expect(AuthToken.expires_at(token)).to be_a(Time)
         expect(AuthToken.expires_at(token)).to be_within(5).of(2.hours.from_now)
       end
@@ -187,7 +187,7 @@ RSpec.describe AuthToken, type: :service do
       it 'returns nil for token without sub claim' do
         payload = { email: user.email, exp: 24.hours.from_now.to_i }
         token = JWT.encode(payload, Rails.application.credentials.secret_key_base, 'HS256')
-        
+
         expect(AuthToken.user_id_from(token)).to be_nil
       end
     end
@@ -197,21 +197,21 @@ RSpec.describe AuthToken, type: :service do
     it 'rejects token with modified payload' do
       token = AuthToken.for_user(user)
       parts = token.split('.')
-      
+
       # Tamper with payload (change user id)
       tampered_payload = Base64.urlsafe_encode64({ sub: 999, exp: 24.hours.from_now.to_i }.to_json)
       tampered_token = "#{parts[0]}.#{tampered_payload}.#{parts[2]}"
-      
+
       expect(AuthToken.verify(tampered_token)).to be_nil
     end
 
     it 'rejects token with modified signature' do
       token = AuthToken.for_user(user)
       parts = token.split('.')
-      
+
       # Tamper with signature
       tampered_token = "#{parts[0]}.#{parts[1]}.tampered_signature"
-      
+
       expect(AuthToken.verify(tampered_token)).to be_nil
     end
 
@@ -219,7 +219,7 @@ RSpec.describe AuthToken, type: :service do
       payload = { sub: user.id, exp: 24.hours.from_now.to_i }
       # Try to use 'none' algorithm (security vulnerability)
       token = JWT.encode(payload, nil, 'none')
-      
+
       expect(AuthToken.verify(token)).to be_nil
     end
   end
@@ -227,9 +227,9 @@ RSpec.describe AuthToken, type: :service do
   describe 'Concurrency and Race Conditions' do
     it 'handles rapid token verification' do
       token = AuthToken.for_user(user)
-      
+
       results = 10.times.map { AuthToken.verify(token) }
-      
+
       expect(results).to all(eq(user))
     end
   end
@@ -238,7 +238,7 @@ RSpec.describe AuthToken, type: :service do
     it 'does not leak sensitive data in token' do
       token = AuthToken.for_user(user)
       decoded = AuthToken.decode(token)
-      
+
       # Should not contain password or sensitive fields
       expect(decoded.keys).not_to include('password')
       expect(decoded.keys).not_to include('password_digest')
@@ -249,19 +249,18 @@ RSpec.describe AuthToken, type: :service do
       start_time = Time.now
       100.times { AuthToken.for_user(user) }
       duration = Time.now - start_time
-      
+
       expect(duration).to be < 2.0 # Should complete in under 2 seconds
     end
 
     it 'verifies tokens in reasonable time' do
       token = AuthToken.for_user(user)
-      
+
       start_time = Time.now
       100.times { AuthToken.verify(token) }
       duration = Time.now - start_time
-      
+
       expect(duration).to be < 2.0 # Should complete in under 2 seconds
     end
   end
 end
-

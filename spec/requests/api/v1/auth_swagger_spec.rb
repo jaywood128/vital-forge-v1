@@ -23,7 +23,7 @@ RSpec.describe "API V1 Authentication", type: :request do
           properties: {
             csrfToken: { type: :string, example: "abc123xyz..." }
           },
-          required: ["csrfToken"]
+          required: [ "csrfToken" ]
 
         run_test!
       end
@@ -46,17 +46,17 @@ RSpec.describe "API V1 Authentication", type: :request do
               email: { type: :string, format: :email, example: "john.doe@example.com" },
               password: { type: :string, format: :password, example: "Password123!" }
             },
-            required: ["email", "password"]
+            required: [ "email", "password" ]
           }
         },
-        required: ["user"]
+        required: [ "user" ]
       }
 
       response "200", "login successful" do
         # Note: This test is skipped due to Rswag's cookie handling limitations
         # The actual endpoint works correctly (see spec/requests/api/v1/auth_spec.rb)
         # For testing with Swagger UI, use the mobile endpoints (/api/v1/mobile/login)
-        
+
         schema type: :object,
           properties: {
             data: {
@@ -89,7 +89,7 @@ RSpec.describe "API V1 Authentication", type: :request do
       response "401", "invalid credentials" do
         # Note: This test is skipped due to Rswag's cookie handling limitations
         # The actual endpoint works correctly (see spec/requests/api/v1/auth_spec.rb)
-        
+
         schema type: :object,
           properties: {
             error: { type: :string, example: "Invalid email or password" }
@@ -137,7 +137,7 @@ RSpec.describe "API V1 Authentication", type: :request do
           # Login first
           get api_v1_csrf_path, as: :json
           csrf_token = cookies["CSRF-TOKEN"]
-          
+
           post api_v1_login_path,
             params: { user: { email: user.email, password: "Password123!" } },
             headers: { "X-CSRF-Token" => csrf_token },
@@ -170,7 +170,7 @@ RSpec.describe "API V1 Authentication", type: :request do
       response "204", "logout successful" do
         # Note: This test is skipped due to Rswag's cookie handling limitations
         # The actual endpoint works correctly (see spec/requests/api/v1/auth_spec.rb)
-        
+
         before do
           skip "Rswag has limitations with cookie-based sessions. Use mobile endpoints for testing."
         end
@@ -180,4 +180,3 @@ RSpec.describe "API V1 Authentication", type: :request do
     end
   end
 end
-

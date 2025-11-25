@@ -18,7 +18,7 @@ class Api::V1::Mobile::BaseController < ApplicationController
     return render json: { error: "Missing authentication token" }, status: :unauthorized unless token
 
     @current_user = ::AuthToken.verify(token)
-    
+
     unless @current_user
       render json: { error: "Invalid or expired token" }, status: :unauthorized
     end
@@ -36,4 +36,3 @@ class Api::V1::Mobile::BaseController < ApplicationController
     render json: { errors: e.record.errors.to_hash(true) }, status: :unprocessable_entity
   end
 end
-

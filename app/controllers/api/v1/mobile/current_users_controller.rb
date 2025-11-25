@@ -21,4 +21,3 @@ class Api::V1::Mobile::CurrentUsersController < Api::V1::Mobile::BaseController
     }, status: :ok
   end
 end
-

@@ -13,7 +13,7 @@ class Api::V1::BaseController < ApplicationController
   private
 
   def require_api_authentication
-    return if logged_in?  
+    return if logged_in?
 
     render json: { error: "Authentication required" }, status: :unauthorized
   end
@@ -30,5 +30,3 @@ class Api::V1::BaseController < ApplicationController
     render json: { error: "Invalid or missing CSRF token" }, status: :unprocessable_entity
   end
 end
-
-

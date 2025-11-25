@@ -53,4 +53,3 @@ module DualAuthenticatable
     @auth_method == :session
   end
 end
-

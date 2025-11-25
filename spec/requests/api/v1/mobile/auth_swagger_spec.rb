@@ -30,10 +30,10 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
               email: { type: :string, format: :email, example: "mobile.user@example.com" },
               password: { type: :string, format: :password, example: "Password123!" }
             },
-            required: ["email", "password"]
+            required: [ "email", "password" ]
           }
         },
-        required: ["user"]
+        required: [ "user" ]
       }
 
       response "200", "login successful" do
@@ -52,13 +52,13 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
                     full_name: { type: :string, example: "Mobile User" }
                   }
                 },
-                token: { 
-                  type: :string, 
+                token: {
+                  type: :string,
                   example: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImV4cCI6MTcwMDAwMDAwMCwiaWF0IjoxNjk5OTEzNjAwfQ.abcdef123456",
                   description: "JWT token - use in Authorization header as 'Bearer <token>'"
                 },
-                expires_at: { 
-                  type: :string, 
+                expires_at: {
+                  type: :string,
                   format: :"date-time",
                   example: "2024-11-24T12:00:00Z",
                   description: "Token expiration time (24 hours from login)"
@@ -76,7 +76,7 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
           expect(data["data"]["user"]["email"]).to eq(user.email)
           expect(data["data"]["token"]).to be_present
           expect(data["data"]["expires_at"]).to be_present
-          
+
           # Verify token is valid JWT
           token = data["data"]["token"]
           decoded = JWT.decode(token, Rails.application.credentials.secret_key_base, true, algorithm: "HS256")
@@ -119,11 +119,11 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
     get "Get Current Mobile User" do
       tags "Mobile Authentication"
       produces "application/json"
-      security [{ bearer_auth: [] }]
+      security [ { bearer_auth: [] } ]
       description "Returns the currently authenticated user based on JWT token. Include the token in the Authorization header."
 
-      parameter name: :Authorization, 
-                in: :header, 
+      parameter name: :Authorization,
+                in: :header,
                 type: :string,
                 required: true,
                 description: "JWT token in format: Bearer <token>",
@@ -156,7 +156,7 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
           post api_v1_mobile_login_path,
             params: { user: { email: user.email, password: "Password123!" } },
             as: :json
-          
+
           token = JSON.parse(response.body).dig("data", "token")
           "Bearer #{token}"
         end
@@ -202,11 +202,11 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
     delete "Mobile Logout" do
       tags "Mobile Authentication"
       produces "application/json"
-      security [{ bearer_auth: [] }]
+      security [ { bearer_auth: [] } ]
       description "Logs out the mobile user. Client should discard the JWT token after this call."
 
-      parameter name: :Authorization, 
-                in: :header, 
+      parameter name: :Authorization,
+                in: :header,
                 type: :string,
                 required: true,
                 description: "JWT token in format: Bearer <token>",
@@ -218,7 +218,7 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
           post api_v1_mobile_login_path,
             params: { user: { email: user.email, password: "Password123!" } },
             as: :json
-          
+
           token = JSON.parse(response.body).dig("data", "token")
           "Bearer #{token}"
         end
@@ -239,4 +239,3 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
     end
   end
 end
-

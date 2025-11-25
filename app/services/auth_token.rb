@@ -139,4 +139,3 @@ class AuthToken
     end
   end
 end
-

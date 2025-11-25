@@ -22,11 +22,11 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
 
       expect(response).to have_http_status(:ok)
       body = JSON.parse(response.body)
-      
+
       expect(body.dig("data", "user", "email")).to eq(user.email)
       expect(body.dig("data", "token")).to be_present
       expect(body.dig("data", "expires_at")).to be_present
-      
+
       # Verify token is valid JWT
       token = body.dig("data", "token")
       decoded = JWT.decode(token, Rails.application.credentials.secret_key_base, true, algorithm: "HS256")
@@ -58,7 +58,7 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
       post api_v1_mobile_login_path,
         params: { user: { email: user.email, password: "Password123!" } },
         as: :json
-      
+
       token = JSON.parse(response.body).dig("data", "token")
 
       # Use token to get current user
@@ -97,7 +97,7 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
       post api_v1_mobile_login_path,
         params: { user: { email: user.email, password: "Password123!" } },
         as: :json
-      
+
       token = JSON.parse(response.body).dig("data", "token")
 
       # Logout
@@ -109,4 +109,3 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
     end
   end
 end
-

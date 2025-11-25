@@ -66,7 +66,7 @@ RSpec.describe "API V1 Authentication", type: :request do
       # Force cookie jar to respect the cleared session
       # (rack-test sometimes holds onto old cookies)
       follow_redirect! if response.redirect?
-      
+
       # Current user should now be unauthorized
       get api_v1_current_user_path, as: :json
       expect(response).to have_http_status(:unauthorized)
@@ -81,5 +81,3 @@ RSpec.describe "API V1 Authentication", type: :request do
     end
   end
 end
-
-

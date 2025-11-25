@@ -4,4 +4,3 @@ Rails.application.config.session_store :cookie_store,
   httponly: true,
   same_site: Rails.env.production? ? :none : :lax,
   expire_after: 2.weeks
-
