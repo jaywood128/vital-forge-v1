@@ -1,9 +1,9 @@
 Rails.application.routes.draw do
   if defined?(Rswag::Ui::Engine)
-    mount Rswag::Ui::Engine => '/api-docs'
+    mount Rswag::Ui::Engine => "/api-docs"
   end
   if defined?(Rswag::Api::Engine)
-    mount Rswag::Api::Engine => '/api-docs'
+    mount Rswag::Api::Engine => "/api-docs"
   end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
@@ -31,17 +31,28 @@ Rails.application.routes.draw do
   get "dashboard", to: "dashboard#index"
 
   # Devise minimal routes (skip HTML flows for now)
-  devise_for :users, skip: [:registrations, :passwords, :confirmations]
+  devise_for :users, skip: [ :registrations, :passwords, :confirmations ]
 
   namespace :api do
     namespace :v1 do
-      get    "csrf",         to: "csrf#show"
+      # Web routes (Next.js) - Session-based authentication
+      get "csrf",         to: "csrf#show"
       devise_scope :user do
         post   "login",      to: "sessions#create"
         delete "logout",      to: "sessions#destroy"
         get    "current_user", to: "current_users#show"
       end
-      # Workouts CRUD etc. can live here as you implement
+
+      # Mobile routes - JWT token authentication
+      namespace :mobile do
+        post   "login",        to: "sessions#create"
+        delete "logout",       to: "sessions#destroy"
+        get    "current_user", to: "current_users#show"
+      end
+
+      # Shared resources (support both session and JWT authentication)
+      resources :workouts, only: [ :index, :show ]
+      # resources :exercises
     end
   end
 end

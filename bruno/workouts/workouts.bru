@@ -1,0 +1,20 @@
+meta {
+  name: workouts
+  type: http
+  seq: 1
+}
+
+get {
+  url: http://localhost:3000/api/v1/workouts
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImVtYWlsIjoidGVzdEB2aXRhbGZvcmdlLmNvbSIsImV4cCI6MTc2NDAwMjI1OCwiaWF0IjoxNzYzOTE1ODU4fQ.MyF_P6JjbI2VgSfEj61IeP6RkqHNxlmmmkQy5ejHAp4
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

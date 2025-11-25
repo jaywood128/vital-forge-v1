@@ -1,6 +1,6 @@
 class User < ApplicationRecord
   devise :database_authenticatable, :validatable
-  
+
   # Associations
   has_many :workouts, dependent: :destroy
 
@@ -57,4 +57,3 @@ class User < ApplicationRecord
     self.email = email.downcase.strip if email.present?
   end
 end
-

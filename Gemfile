@@ -39,6 +39,10 @@ gem "thruster", require: false
 
 # Allow Cross-Origin Resource Sharing (CORS) [https://github.com/cyu/rack-cors]
 gem "rack-cors"
+
+# JSON Web Tokens for mobile authentication [https://github.com/jwt/ruby-jwt]
+gem "jwt"
+
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 
@@ -54,10 +58,10 @@ group :development, :test do
 
   # Load environment variables from .env file
   gem "dotenv-rails"
-  
+
   # RSpec for testing
   gem "rspec-rails"
-  
+
   # API documentation with Swagger/OpenAPI
   gem "rswag-specs"
 end
@@ -65,7 +69,7 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
-  
+
   # API documentation UI and routes
   gem "rswag-api"
   gem "rswag-ui"
@@ -76,6 +80,10 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+
+  # Code coverage
+  gem "simplecov", require: false
+  gem "simplecov-json", require: false
 end
 
 ruby "3.2.6"

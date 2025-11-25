@@ -114,6 +114,3 @@ RSpec.describe "Authentication API", type: :request do
     end
   end
 end
-
-
-

@@ -48,11 +48,13 @@ RSpec.describe "Users API", type: :request do
       response "302", "user created successfully - redirects to dashboard" do
         let(:user) do
           {
-            email: "newuser@example.com",
-            password: "SecurePass123!",
-            password_confirmation: "SecurePass123!",
-            first_name: "New",
-            last_name: "User"
+            user: {
+              email: "newuser@example.com",
+              password: "SecurePass123!",
+              password_confirmation: "SecurePass123!",
+              first_name: "New",
+              last_name: "User"
+            }
           }
         end
 
@@ -76,11 +78,13 @@ RSpec.describe "Users API", type: :request do
 
         let(:user) do
           {
-            email: existing_user.email,
-            password: "NewPassword123!",
-            password_confirmation: "NewPassword123!",
-            first_name: "Another",
-            last_name: "User"
+            user: {
+              email: existing_user.email,
+              password: "NewPassword123!",
+              password_confirmation: "NewPassword123!",
+              first_name: "Another",
+              last_name: "User"
+            }
           }
         end
 
@@ -94,11 +98,13 @@ RSpec.describe "Users API", type: :request do
       response "422", "validation failed - password too short" do
         let(:user) do
           {
-            email: "shortpass@example.com",
-            password: "short",
-            password_confirmation: "short",
-            first_name: "Short",
-            last_name: "Pass"
+            user: {
+              email: "shortpass@example.com",
+              password: "short",
+              password_confirmation: "short",
+              first_name: "Short",
+              last_name: "Pass"
+            }
           }
         end
 
@@ -110,11 +116,13 @@ RSpec.describe "Users API", type: :request do
       response "422", "validation failed - password confirmation doesn't match" do
         let(:user) do
           {
-            email: "mismatch@example.com",
-            password: "SecurePass123!",
-            password_confirmation: "DifferentPass123!",
-            first_name: "Mismatch",
-            last_name: "User"
+            user: {
+              email: "mismatch@example.com",
+              password: "SecurePass123!",
+              password_confirmation: "DifferentPass123!",
+              first_name: "Mismatch",
+              last_name: "User"
+            }
           }
         end
 
@@ -126,8 +134,10 @@ RSpec.describe "Users API", type: :request do
       response "422", "validation failed - missing required fields" do
         let(:user) do
           {
-            email: "incomplete@example.com"
-            # Missing password, first_name, last_name
+            user: {
+              email: "incomplete@example.com"
+              # Missing password, first_name, last_name
+            }
           }
         end
 
@@ -139,11 +149,13 @@ RSpec.describe "Users API", type: :request do
       response "422", "validation failed - invalid email format" do
         let(:user) do
           {
-            email: "invalid-email-format",
-            password: "SecurePass123!",
-            password_confirmation: "SecurePass123!",
-            first_name: "Invalid",
-            last_name: "Email"
+            user: {
+              email: "invalid-email-format",
+              password: "SecurePass123!",
+              password_confirmation: "SecurePass123!",
+              first_name: "Invalid",
+              last_name: "Email"
+            }
           }
         end
 
@@ -154,4 +166,3 @@ RSpec.describe "Users API", type: :request do
     end
   end
 end
-
