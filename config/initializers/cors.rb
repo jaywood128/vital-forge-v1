@@ -1,10 +1,14 @@
 Rails.application.config.middleware.insert_before 0, Rack::Cors do
   allow do
-    # Use environment variable for allowed origins, falling back to localhost for development
-    # Example ENV value: "https://myapp.com,https://staging.myapp.com"
     origins do |source, env|
-      allowed_origins = ENV.fetch('ALLOWED_ORIGINS', 'http://localhost:3001').split(',')
-      allowed_origins.include?(source)
+      if Rails.env.development?
+        # In development, allow localhost and 127.0.0.1 on any port
+        source =~ /\Ahttp:\/\/(localhost|127\.0\.0\.1)(:\d+)?\z/
+      else
+        # In production, use strict whitelist from environment variable
+        allowed_origins = ENV.fetch('ALLOWED_ORIGINS', '').split(',')
+        allowed_origins.include?(source)
+      end
     end
 
     resource '*',

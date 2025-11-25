@@ -35,13 +35,24 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      # Web routes (Next.js) - Session-based authentication
       get    "csrf",         to: "csrf#show"
       devise_scope :user do
         post   "login",      to: "sessions#create"
         delete "logout",      to: "sessions#destroy"
         get    "current_user", to: "current_users#show"
       end
-      # Workouts CRUD etc. can live here as you implement
+
+      # Mobile routes - JWT token authentication
+      namespace :mobile do
+        post   "login",        to: "sessions#create"
+        delete "logout",       to: "sessions#destroy"
+        get    "current_user", to: "current_users#show"
+      end
+
+      # Shared resources (support both session and JWT authentication)
+      resources :workouts, only: [:index, :show]
+      # resources :exercises
     end
   end
 end

@@ -13,7 +13,7 @@ class Api::V1::BaseController < ApplicationController
   private
 
   def require_api_authentication
-    return if logged_in?
+    return if logged_in?  
 
     render json: { error: "Authentication required" }, status: :unauthorized
   end

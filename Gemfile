@@ -39,6 +39,10 @@ gem "thruster", require: false
 
 # Allow Cross-Origin Resource Sharing (CORS) [https://github.com/cyu/rack-cors]
 gem "rack-cors"
+
+# JSON Web Tokens for mobile authentication [https://github.com/jwt/ruby-jwt]
+gem "jwt"
+
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 

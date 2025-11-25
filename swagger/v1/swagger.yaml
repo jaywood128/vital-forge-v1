@@ -283,7 +283,6 @@ servers:
 - url: http://localhost:3000
   description: Development server
 - url: https://api.vitalforge.com
-  description: Production server
 components:
   securitySchemes:
     csrf_token:

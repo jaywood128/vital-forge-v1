@@ -4,8 +4,6 @@ class Api::V1::SessionsController < Devise::SessionsController
   protect_from_forgery with: :exception
 
   def create
-
-    #binding.irb
     # Ensure params are in Devise's expected structure for Warden
     unless params[:user].is_a?(ActionController::Parameters)
       params[:user] = ActionController::Parameters.new(email: params[:email], password: params[:password])
@@ -50,6 +48,11 @@ class Api::V1::SessionsController < Devise::SessionsController
       first_name: user.first_name,
       last_name: user.last_name
     }
+  end
+
+  def verify_signed_out_user
+    return unless signed_in?(resource_name)
+    render json: { error: "User is already signed out" }, status: :unauthorized
   end
 end
 
