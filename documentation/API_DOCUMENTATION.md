@@ -73,19 +73,306 @@ This will generate documentation from your request specs.
 ## 🎯 Current Endpoints Documented
 
 ### Authentication
-- `POST /login` - User login
-- `DELETE /logout` - User logout
+- `POST /api/v1/login` - User login (web/session-based)
+- `POST /api/v1/mobile/login` - User login (mobile/JWT)
+- `DELETE /api/v1/logout` - User logout (web)
+- `DELETE /api/v1/mobile/logout` - User logout (mobile)
 
 ### Users
-- `GET /signup` - Show registration form
-- `POST /users` - Create user account
+- `POST /api/v1/users` - Create user account (web)
+- `POST /api/v1/mobile/users` - Create user account (mobile)
+- `GET /api/v1/current_user` - Get current user info
 
-### Dashboard
-- `GET /dashboard` - Protected dashboard (requires auth)
+### Workout Templates
+- `GET /api/v1/workout_templates` - List all active templates (public)
+  - Returns `has_active_workout` flag if authenticated
+  - Note: Filtering by goal_type/difficulty/days is done on frontend
+- `GET /api/v1/workout_templates/:id` - Get template with exercises (public)
+  - Returns `has_active_workout` flag if authenticated
+- `POST /api/v1/workout_templates/:id/start` - Start workout from template (requires auth)
+  - Body: `{ "scheduled_time": "HH:MM" }` (optional)
+  - Returns 409 Conflict if duplicate active workout exists
 
-## 🚀 Future: JSON API Endpoints
+### Workouts
+- `GET /api/v1/workouts` - List user's workouts (requires auth)
+  - Query params: `start_date`, `end_date` for date range filtering
+  - Includes `scheduled_time` in response
+- `GET /api/v1/workouts/:id` - Get workout details (requires auth)
+  - Includes `scheduled_time` in response
+- `PATCH /api/v1/workouts/:id/start` - Begin active workout (requires auth)
+- `PATCH /api/v1/workouts/:id/complete` - Finish workout (requires auth)
 
-When you build JSON API endpoints for your React frontend, you'll want to:
+### Exercise Sets
+- `PATCH /api/v1/exercise_sets/:id` - Update set performance (requires auth)
+
+### User Preferences
+- `GET /api/v1/user_preference` - Get user preferences (requires auth)
+- `POST /api/v1/user_preference` - Create preferences (requires auth)
+- `PATCH /api/v1/user_preference` - Update preferences (requires auth)
+
+## 📋 API Endpoint Details
+
+### Workout Template Starter Flow
+
+#### 1. Browse Templates (Public)
+```http
+GET /api/v1/workout_templates
+```
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Push Pull Legs",
+      "description": "Classic 6-day split for muscle building",
+      "goal_type": "physique",
+      "difficulty_level": "Intermediate",
+      "days_per_week": 6,
+      "estimated_duration_minutes": 45,
+      "total_exercises": 6,
+      "source": "Bodybuilding.com",
+      "has_active_workout": false
+    }
+  ]
+}
+```
+
+**Notes:**
+- `has_active_workout` is `true` if the authenticated user already has an active workout from this template
+- Frontend can filter by `goal_type`, `difficulty_level`, or `days_per_week` after receiving all templates
+
+#### 2. View Template Details (Public)
+```http
+GET /api/v1/workout_templates/1
+```
+
+**Response:**
+```json
+{
+  "data": {
+    "id": 1,
+    "name": "Push Pull Legs",
+    "description": "...",
+    "has_active_workout": false,
+    "exercises": [
+      {
+        "id": 101,
+        "order_position": 1,
+        "recommended_sets": 4,
+        "recommended_reps": "8-12",
+        "rest_seconds": 90,
+        "notes": "Focus on chest contraction",
+        "exercise": {
+          "id": 5,
+          "name": "Barbell Bench Press",
+          "muscle_group": "Chest",
+          "equipment": "Barbell",
+          "exercise_type": "Strength"
+        }
+      }
+    ]
+  }
+}
+```
+
+**Note:** `has_active_workout` is `true` if the authenticated user already has an active workout from this template.
+
+#### 3. Start Workout from Template (Authenticated - with optional scheduled time)
+```http
+POST /api/v1/workout_templates/1/start
+Authorization: Bearer {jwt_token}
+OR
+Cookie: session_id=...
+X-CSRF-Token: ...
+
+Content-Type: application/json
+
+{
+  "scheduled_time": "06:00"
+}
+```
+
+**Request Body (optional):**
+- `scheduled_time`: Time in "HH:MM" format (e.g., "06:00" for 6:00 AM, "17:30" for 5:30 PM)
+
+**Success Response (201 Created):**
+```json
+{
+  "workout": {
+    "id": 123,
+    "name": "Push Pull Legs",
+    "workout_template_id": 1,
+    "workout_date": "2025-11-28",
+    "scheduled_time": "06:00",
+    "started_at": null,
+    "completed": false,
+    "workout_exercises": [
+      {
+        "id": 456,
+        "order_position": 1,
+        "completed": false,
+        "exercise": {
+          "id": 5,
+          "name": "Barbell Bench Press"
+        },
+        "exercise_sets": [
+          {
+            "id": 789,
+            "set_number": 1,
+            "reps": 10,
+            "weight": null,
+            "completed": false
+          },
+          {
+            "id": 790,
+            "set_number": 2,
+            "reps": 10,
+            "weight": null,
+            "completed": false
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+**Duplicate Conflict Response (409 Conflict):**
+```json
+{
+  "error": "You already have an active workout from this template. Complete it first or view your in-progress workouts.",
+  "active_workout_id": 100
+}
+```
+
+#### 4. Begin Workout (Authenticated)
+```http
+PATCH /api/v1/workouts/123/start
+Authorization: Bearer {jwt_token}
+```
+
+**Response:**
+```json
+{
+  "workout": {
+    "id": 123,
+    "started_at": "2025-11-28T08:00:00Z",
+    "completed": false
+  }
+}
+```
+
+#### 4.5. Get Workouts with Date Range Filtering (Authenticated)
+```http
+GET /api/v1/workouts?start_date=2025-11-01&end_date=2025-11-30
+Authorization: Bearer {jwt_token}
+OR
+Cookie: session_id=...
+X-CSRF-Token: ...
+```
+
+**Query Parameters (all optional):**
+- `start_date`: Start of date range (ISO format: YYYY-MM-DD)
+- `end_date`: End of date range (ISO format: YYYY-MM-DD)
+- Can provide both, just `start_date`, or just `end_date`
+
+**Response:**
+```json
+{
+  "data": [
+    {
+      "id": 123,
+      "name": "Push Pull Legs",
+      "workout_date": "2025-11-15",
+      "scheduled_time": "06:00",
+      "started_at": "2025-11-15T06:05:00Z",
+      "completed_at": "2025-11-15T06:50:00Z",
+      "completed": true,
+      "workout_exercises": [
+        {
+          "id": 456,
+          "order_position": 1,
+          "completed": true,
+          "exercise": {
+            "id": 5,
+            "name": "Barbell Bench Press"
+          },
+          "exercise_sets": [...]
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Use Cases:**
+- Calendar view: Get all workouts for current month
+- Week view: Get workouts for 7-day period
+- Filter past vs upcoming workouts
+- ICS file generation for calendar integration
+
+#### 5. Update Set Performance (Authenticated)
+```http
+PATCH /api/v1/exercise_sets/789
+Authorization: Bearer {jwt_token}
+Content-Type: application/json
+
+{
+  "exercise_set": {
+    "reps": 12,
+    "weight": 135,
+    "weight_unit": "lbs",
+    "rpe": 7,
+    "completed": true
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "exercise_set": {
+    "id": 789,
+    "set_number": 1,
+    "reps": 12,
+    "weight": 135.0,
+    "weight_unit": "lbs",
+    "rpe": 7,
+    "completed": true
+  }
+}
+```
+
+**Auto-Completion Logic:**
+- When all sets in an exercise are completed → `workout_exercise.completed = true`
+- When all exercises in a workout are completed → `workout.completed = true` (auto)
+
+#### 6. Complete Workout (Authenticated)
+```http
+PATCH /api/v1/workouts/123/complete
+Authorization: Bearer {jwt_token}
+```
+
+**Response:**
+```json
+{
+  "workout": {
+    "id": 123,
+    "started_at": "2025-11-28T08:00:00Z",
+    "completed_at": "2025-11-28T08:47:00Z",
+    "duration_minutes": 47,
+    "completed": true
+  }
+}
+```
+
+---
+
+## 🚀 Custom Workouts (Future Feature)
+
+When you build custom workout creation, you'll want to:
 
 ### 1. Create API Namespace
 ```ruby

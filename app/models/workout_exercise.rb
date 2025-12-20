@@ -39,4 +39,13 @@ class WorkoutExercise < ApplicationRecord
 
     (rpe_values.sum.to_f / rpe_values.size).round(1)
   end
+
+  # Completion tracking
+  def all_sets_completed?
+    exercise_sets.any? && exercise_sets.all?(&:completed)
+  end
+
+  def check_and_complete!
+    update!(completed: true) if all_sets_completed? && !completed?
+  end
 end

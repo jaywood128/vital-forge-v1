@@ -1,7 +1,12 @@
 # frozen_string_literal: true
 
-# Concern for controllers that need to support both session and JWT authentication
-# Used by shared resource endpoints (workouts, exercises, etc.)
+# Concern for controllers that support both session (web) and JWT (mobile) authentication.
+# - Hooks a before_action to authenticate via Authorization header first (JWT), then session[:user_id].
+# - Sets @current_user and an auth_method flag (:jwt or :session) for downstream use.
+# - Renders 401 JSON if neither credential succeeds.
+# To allow anonymous access while still hydrating current_user when present, add
+# `skip_before_action :authenticate_user_dual!` in the controller and implement
+# a permissive helper that calls the lookup logic without rendering.
 module DualAuthenticatable
   extend ActiveSupport::Concern
 

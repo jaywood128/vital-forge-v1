@@ -22,6 +22,9 @@ class ExerciseSet < ApplicationRecord
   scope :with_weight, -> { where.not(weight: nil) }
   scope :to_failure, -> { where(to_failure: true) }
 
+  # Callbacks
+  after_save :check_exercise_completion
+
   # Helper methods
   def volume
     # Volume for this set = reps × weight
@@ -50,5 +53,12 @@ class ExerciseSet < ApplicationRecord
     when 7..8 then "Hard"
     when 9..10 then "Maximum"
     end
+  end
+
+  private
+
+  def check_exercise_completion
+    workout_exercise.check_and_complete!
+    workout_exercise.workout.check_and_complete!
   end
 end

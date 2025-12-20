@@ -1,28 +1,36 @@
-class Api::V1::SessionsController < Devise::SessionsController
-  respond_to :json
-  skip_before_action :require_authentication
-  protect_from_forgery with: :exception
+class Api::V1::SessionsController < Api::V1::BaseController
+  skip_before_action :require_api_authentication, only: [ :create ]
+  skip_before_action :verify_authenticity_token, only: [ :create ]
 
   def create
-    # Ensure params are in Devise's expected structure for Warden
-    unless params[:user].is_a?(ActionController::Parameters)
-      params[:user] = ActionController::Parameters.new(email: params[:email], password: params[:password])
+    user = User.find_by(email: params.dig(:user, :email)&.downcase)
+    if user&.valid_password?(params.dig(:user, :password))
+      # Check if account is locked
+      if user.locked?
+        return render json: {
+          error: "Account is locked due to too many failed login attempts. Please try again later."
+        }, status: :locked
+      end
+
+      # Reset failed login attempts on successful login
+      user.reset_failed_login!
+      user.update(last_login_at: Time.current)
+
+      # Create session
+      reset_session
+      session[:user_id] = user.id
+      set_fresh_csrf_cookie
+
+      render json: { data: { user: serialize_user(user) } }, status: :ok
+    else
+      # Increment failed login attempts
+      user&.increment_failed_login!
+
+      render json: { error: "Invalid email or password" }, status: :unauthorized
     end
-
-    user = warden.authenticate(scope: :user)
-    return render json: { error: "Invalid email or password" }, status: :unauthorized unless user
-
-    reset_session
-    sign_in(:user, user)
-    session[:user_id] = user.id
-    set_fresh_csrf_cookie
-    render json: { data: { user: serialize_user(user) } }, status: :ok
   end
 
   def destroy
-    sign_out(resource_name) if signed_in?(resource_name)
-    session.delete(:user_id)
-    @current_user = nil
     reset_session
     set_fresh_csrf_cookie
     head :no_content
