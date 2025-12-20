@@ -2,7 +2,9 @@ class ExerciseSet < ApplicationRecord
   # Associations
   belongs_to :workout_exercise
 
+
   # Validations
+  validates :set_number, presence: true,
   validates :set_number, presence: true,
             uniqueness: { scope: :workout_exercise_id },
             numericality: { greater_than: 0 }
@@ -13,8 +15,13 @@ class ExerciseSet < ApplicationRecord
     only_integer: true,
     greater_than_or_equal_to: 1,
     less_than_or_equal_to: 10
+  validates :rpe, numericality: {
+    only_integer: true,
+    greater_than_or_equal_to: 1,
+    less_than_or_equal_to: 10
   }, allow_nil: true
   validates :rest_after_seconds, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+
 
   # Scopes
   scope :completed, -> { where(completed: true) }
@@ -31,21 +38,26 @@ class ExerciseSet < ApplicationRecord
     reps * (weight || 0)
   end
 
+
   def display_set
     # Human-readable format: "Set 1: 135 lbs × 10 reps"
     weight_str = weight ? "#{weight} #{weight_unit}" : "bodyweight"
     "Set #{set_number}: #{weight_str} × #{reps} reps"
   end
 
+
   def one_rep_max
     # Estimate 1RM using Brzycki formula: weight / (1.0278 - 0.0278 × reps)
     return nil unless weight && reps > 0 && reps <= 12
 
+
     (weight / (1.0278 - (0.0278 * reps))).round(2)
   end
 
+
   def intensity_description
     return nil unless rpe
+
 
     case rpe
     when 1..3 then "Light"

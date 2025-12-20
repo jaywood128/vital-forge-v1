@@ -5,6 +5,7 @@ class Workout < ApplicationRecord
   has_many :workout_exercises, -> { order(:order_position) }, dependent: :destroy
   has_many :exercises, through: :workout_exercises
 
+
   # Validations
   validates :name, presence: true, length: { maximum: 100 }
   validates :workout_date, presence: true
@@ -15,11 +16,19 @@ class Workout < ApplicationRecord
     greater_than_or_equal_to: 1,
     less_than_or_equal_to: 10,
     allow_nil: true
+  validates :intensity_level, numericality: {
+    only_integer: true,
+    greater_than_or_equal_to: 1,
+    less_than_or_equal_to: 10,
+    allow_nil: true
   }
+  validates :workout_type, inclusion: {
   validates :workout_type, inclusion: {
     in: %w[Strength Cardio HIIT Yoga Flexibility Sports Other],
     allow_nil: true
+    allow_nil: true
   }
+
 
   # Scopes for common queries
   scope :completed, -> { where(completed: true) }
@@ -30,17 +39,22 @@ class Workout < ApplicationRecord
   scope :recent, -> { order(workout_date: :desc) }
   scope :by_date_range, ->(start_date, end_date) {
     where(workout_date: start_date..end_date)
+  scope :by_date_range, ->(start_date, end_date) {
+    where(workout_date: start_date..end_date)
   }
   scope :by_type, ->(type) { where(workout_type: type) }
 
+
   # Default scope to order by most recent first
   default_scope { order(workout_date: :desc) }
+
 
   # Helper methods
   def total_volume
     # Total volume across all exercises in this workout
     workout_exercises.sum(&:total_volume)
   end
+
 
   def total_sets
     # Count all sets across all exercises

@@ -46,6 +46,10 @@ class Api::V1::SessionsController < Api::V1::BaseController
       # (e.g. from Next.js frontend to Rails API).
       # In development, :lax is sufficient and safer for localhost.
       same_site: Rails.env.production? ? :none : :lax
+      # We use :none in production to allow the cookie to be sent in cross-site requests
+      # (e.g. from Next.js frontend to Rails API).
+      # In development, :lax is sufficient and safer for localhost.
+      same_site: Rails.env.production? ? :none : :lax
     }
   end
 
@@ -56,6 +60,11 @@ class Api::V1::SessionsController < Api::V1::BaseController
       first_name: user.first_name,
       last_name: user.last_name
     }
+  end
+
+  def verify_signed_out_user
+    return unless signed_in?(resource_name)
+    render json: { error: "User is already signed out" }, status: :unauthorized
   end
 
   def verify_signed_out_user
