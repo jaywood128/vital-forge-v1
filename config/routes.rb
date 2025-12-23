@@ -35,6 +35,15 @@ Rails.application.routes.draw do
 
   namespace :api do
     namespace :v1 do
+      # Health check endpoint for ALB
+      get "health", to: proc { [200, {}, ["ok"]] }
+
+      # CSRF token for Next.js
+      get "csrf", to: "csrf#show"
+
+      # User registration (both web and mobile)
+      post "signup", to: "users#create"
+
       # Web routes (Next.js) - Session-based authentication
       get "csrf",         to: "csrf#show"
       devise_scope :user do

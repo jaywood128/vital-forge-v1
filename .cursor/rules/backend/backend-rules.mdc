@@ -413,6 +413,7 @@ app/
 - Document complex logic - future you will thank you
 - Keep it simple - don't over-engineer
 - Follow Rails conventions - don't fight the framework
+- Before Creating a new documentation scan EXISTING documentation to ensure suggested documentation can't be added to existing documentation. if several pages are needed, ensure the name-of-document-page-two format is used or a new folder withing DOCS folder.
 
 
 
