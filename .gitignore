@@ -64,6 +64,7 @@ swagger/v1/swagger.yaml
 /terraform/*.tfstate.*
 /terraform/*.tfvars
 /terraform/crash.log
+/terraform/.terraform.lock.hcl
 
 # Temporary files
 secrets.json

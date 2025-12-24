@@ -31,4 +31,3 @@ desired_count    = 1
 database_url     = "postgresql://postgres:YOUR_URL_ENCODED_PASSWORD@database-1.cfkilgwocvoy.us-east-1.rds.amazonaws.com:5432/vital_forge_production"
 rails_master_key = "your_rails_master_key_from_config_master_key"
 secret_key_base  = "your_secret_key_base_generate_with_rails_secret_command"
-
