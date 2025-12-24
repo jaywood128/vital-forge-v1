@@ -1,0 +1,65 @@
+meta {
+  name: Start Workout from Template (with scheduled time)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/api/v1/workout_templates/1/start
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+  Content-Type: application/json
+  X-CSRF-Token: {{csrf_token}}
+  Cookie: {{session_cookie}}
+}
+
+body:json {
+  {
+    "scheduled_time": "06:00"
+  }
+}
+
+docs {
+  ## Start Workout from Template with Scheduled Time
+  
+  Creates a workout from a template with an optional scheduled time.
+  
+  ### Request Body
+  - `scheduled_time` (optional): Time in "HH:MM" format (e.g., "06:00" for 6:00 AM, "17:30" for 5:30 PM)
+  
+  ### Response
+  Returns the created workout with all exercises and sets.
+  
+  ### Duplicate Prevention
+  Returns 409 Conflict if user already has an active workout from this template.
+  
+  ### Use Cases
+  - User browses templates and selects one to start
+  - User sets a scheduled time for calendar integration
+  - User plans workout for later but creates it now
+}
+
+tests {
+  test("Status is 201 or 409", function() {
+    expect([201, 409]).to.include(res.status);
+  });
+  
+  test("On success, returns workout with scheduled_time", function() {
+    if (res.status === 201) {
+      expect(res.body.workout).to.have.property('scheduled_time');
+      expect(res.body.workout.scheduled_time).to.equal('06:00');
+    }
+  });
+  
+  test("On conflict, returns error and existing workout ID", function() {
+    if (res.status === 409) {
+      expect(res.body).to.have.property('error');
+      expect(res.body).to.have.property('active_workout_id');
+    }
+  });
+}
+

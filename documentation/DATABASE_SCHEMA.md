@@ -9,8 +9,12 @@ VitalForge uses a normalized PostgreSQL database schema optimized for fitness tr
 ```mermaid
 erDiagram
     USERS ||--o{ WORKOUTS : "has many"
+    USERS ||--o| USER_PREFERENCES : "has one"
+    WORKOUT_TEMPLATES ||--o{ WORKOUT_TEMPLATE_EXERCISES : "contains"
     WORKOUTS ||--o{ WORKOUT_EXERCISES : "contains"
+    WORKOUTS }o--|| WORKOUT_TEMPLATES : "based on (optional)"
     EXERCISES ||--o{ WORKOUT_EXERCISES : "used in"
+    EXERCISES ||--o{ WORKOUT_TEMPLATE_EXERCISES : "used in"
     WORKOUT_EXERCISES ||--o{ EXERCISE_SETS : "tracks"
     
     USERS {
@@ -31,9 +35,12 @@ erDiagram
     WORKOUTS {
         bigint id PK
         bigint user_id FK "NOT NULL, ON DELETE CASCADE"
+        bigint workout_template_id FK "NULLABLE"
         string name "NOT NULL"
         text description
         datetime workout_date "NOT NULL"
+        datetime started_at "NULLABLE"
+        datetime completed_at "NULLABLE"
         integer duration_minutes
         string workout_type
         integer calories_burned
@@ -81,7 +88,48 @@ erDiagram
         integer rpe "1-10 scale"
         boolean to_failure "DEFAULT false"
         text notes
-        boolean completed "DEFAULT true"
+        boolean completed "DEFAULT false"
+        datetime created_at
+        datetime updated_at
+    }
+    
+    WORKOUT_TEMPLATES {
+        bigint id PK
+        string name "NOT NULL"
+        text description
+        string goal_type "NOT NULL"
+        string difficulty_level
+        integer days_per_week "NOT NULL"
+        integer estimated_duration_minutes
+        integer total_exercises
+        string source
+        boolean is_active "DEFAULT true"
+        datetime created_at
+        datetime updated_at
+    }
+    
+    WORKOUT_TEMPLATE_EXERCISES {
+        bigint id PK
+        bigint workout_template_id FK "NOT NULL, ON DELETE CASCADE"
+        bigint exercise_id FK "NOT NULL"
+        integer order_position "NOT NULL, DEFAULT 0"
+        integer recommended_sets "NOT NULL"
+        string recommended_reps "NOT NULL"
+        integer rest_seconds
+        text notes
+        datetime created_at
+        datetime updated_at
+    }
+    
+    USER_PREFERENCES {
+        bigint id PK
+        bigint user_id FK "NOT NULL, UNIQUE, ON DELETE CASCADE"
+        string primary_goal
+        integer training_days_per_week
+        integer preferred_workout_duration
+        string experience_level
+        boolean onboarding_completed "DEFAULT false"
+        datetime onboarding_completed_at
         datetime created_at
         datetime updated_at
     }
@@ -114,6 +162,7 @@ erDiagram
 
 **Model Associations:**
 - `has_many :workouts, dependent: :destroy`
+- `has_one :user_preference, dependent: :destroy`
 
 **Security Features:**
 - Account lockout after 5 failed login attempts
@@ -130,10 +179,13 @@ erDiagram
 |--------|------|-------------|-------------|
 | id | bigint | PK, AUTO INCREMENT | Primary key |
 | user_id | bigint | FK → users.id, NOT NULL | Workout owner |
+| workout_template_id | bigint | FK → workout_templates.id, NULLABLE | Template this workout was created from (null for custom workouts) |
 | name | string(255) | NOT NULL | Workout name (e.g., "Morning Leg Day") |
 | description | text | | Optional workout description |
 | workout_date | datetime | NOT NULL | When workout occurred |
-| duration_minutes | integer | | Total workout duration |
+| started_at | datetime | NULLABLE | When user began the workout |
+| completed_at | datetime | NULLABLE | When user finished the workout |
+| duration_minutes | integer | | Total workout duration (calculated from started_at to completed_at) |
 | workout_type | string(255) | | Category: Strength, Cardio, HIIT, Yoga, etc. |
 | calories_burned | integer | | Estimated calories burned |
 | notes | text | | User's workout notes |
@@ -153,6 +205,7 @@ erDiagram
 
 **Model Associations:**
 - `belongs_to :user`
+- `belongs_to :workout_template, optional: true`
 - `has_many :workout_exercises, dependent: :destroy`
 - `has_many :exercises, through: :workout_exercises`
 
@@ -170,7 +223,105 @@ user.workouts.completed.by_type("Strength")
 
 ---
 
-### 3. Exercises Table
+### 3. Workout_Templates Table
+
+**Purpose**: Store reusable workout program templates (e.g., "Push Pull Legs", "5/3/1").
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | bigint | PK, AUTO INCREMENT | Primary key |
+| name | string(255) | NOT NULL | Template name (e.g., "Push Pull Legs") |
+| description | text | | Full description of the program |
+| goal_type | string(255) | NOT NULL | "physique" or "strength" |
+| difficulty_level | string(255) | | "Beginner", "Intermediate", "Advanced" |
+| days_per_week | integer | NOT NULL | 3, 4, 5, or 6 |
+| estimated_duration_minutes | integer | | Average workout time |
+| total_exercises | integer | | Number of exercises in template |
+| source | string(255) | | e.g., "Bodybuilding.com", "T-Nation" |
+| is_active | boolean | DEFAULT true, NOT NULL | For soft delete/hiding |
+| created_at | datetime | NOT NULL | Record creation timestamp |
+| updated_at | datetime | NOT NULL | Last update timestamp |
+
+**Indexes:**
+- `index_workout_templates_on_goal_type` - Filter by goal
+- `index_workout_templates_on_difficulty_level` - Filter by difficulty
+- `index_workout_templates_on_days_per_week` - Filter by training frequency
+- `index_workout_templates_on_is_active` - Show only active templates
+
+**Model Associations:**
+- `has_many :workout_template_exercises, dependent: :destroy`
+- `has_many :exercises, through: :workout_template_exercises`
+- `has_many :workouts` - Workouts created from this template
+
+**Design Note:**
+Templates are reusable blueprints. When a user "starts" a template, it creates a new `Workout` record with all exercises and empty sets pre-populated.
+
+---
+
+### 4. Workout_Template_Exercises Table (Join Table)
+
+**Purpose**: Links workout templates to exercises with template-specific recommendations.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | bigint | PK, AUTO INCREMENT | Primary key |
+| workout_template_id | bigint | FK → workout_templates.id, NOT NULL | Parent template |
+| exercise_id | bigint | FK → exercises.id, NOT NULL | Exercise in template |
+| order_position | integer | NOT NULL, DEFAULT 0 | Order in template (1st, 2nd, 3rd) |
+| recommended_sets | integer | NOT NULL | e.g., 3, 4, 5 |
+| recommended_reps | string(255) | NOT NULL | e.g., "8-12", "5", "AMRAP" |
+| rest_seconds | integer | | Rest between sets |
+| notes | text | | Exercise-specific notes for this template |
+| created_at | datetime | NOT NULL | Record creation timestamp |
+| updated_at | datetime | NOT NULL | Last update timestamp |
+
+**Indexes:**
+- `index_workout_template_exercises_on_workout_template_id` - Fast lookup
+- `index_workout_template_exercises_on_exercise_id` - Fast lookup
+- Composite on `workout_template_id + order_position` - Ordered queries
+
+**Foreign Keys:**
+- `workout_template_id` → `workout_templates.id` (ON DELETE CASCADE)
+- `exercise_id` → `exercises.id` (NO CASCADE - preserve exercise catalog)
+
+**Model Associations:**
+- `belongs_to :workout_template`
+- `belongs_to :exercise`
+
+---
+
+### 5. User_Preferences Table
+
+**Purpose**: Store user onboarding preferences and fitness goals.
+
+| Column | Type | Constraints | Description |
+|--------|------|-------------|-------------|
+| id | bigint | PK, AUTO INCREMENT | Primary key |
+| user_id | bigint | FK → users.id, NOT NULL, UNIQUE | User (one-to-one) |
+| primary_goal | string(255) | | "physique" or "strength" |
+| training_days_per_week | integer | | 3-6 days |
+| preferred_workout_duration | integer | | Minutes |
+| experience_level | string(255) | | "Beginner", "Intermediate", "Advanced" |
+| onboarding_completed | boolean | DEFAULT false, NOT NULL | Has user completed onboarding? |
+| onboarding_completed_at | datetime | | When onboarding was completed |
+| created_at | datetime | NOT NULL | Record creation timestamp |
+| updated_at | datetime | NOT NULL | Last update timestamp |
+
+**Indexes:**
+- `index_user_preferences_on_user_id` (UNIQUE) - One preference per user
+
+**Foreign Keys:**
+- `user_id` → `users.id` (ON DELETE CASCADE)
+
+**Model Associations:**
+- `belongs_to :user`
+
+**Design Note:**
+Used to personalize workout template recommendations based on user's goals and availability.
+
+---
+
+### 6. Exercises Table
 
 **Purpose**: Master catalog of all exercises (reusable across all users).
 
@@ -218,7 +369,7 @@ This is a catalog table, not user-specific. Same "Bench Press" exercise is refer
 
 ---
 
-### 4. Workout_Exercises Table (Join Table)
+### 7. Workout_Exercises Table (Join Table)
 
 **Purpose**: Links workouts to exercises with workout-specific metadata.
 
@@ -253,7 +404,7 @@ Separates the reusable exercise catalog from workout-specific data. Same exercis
 
 ---
 
-### 5. Exercise_Sets Table
+### 8. Exercise_Sets Table
 
 **Purpose**: Store individual set performance data (reps, weight, RPE).
 
@@ -269,7 +420,7 @@ Separates the reusable exercise catalog from workout-specific data. Same exercis
 | rpe | integer | | Rate of Perceived Exertion (1-10) |
 | to_failure | boolean | DEFAULT false | Did set go to muscular failure? |
 | notes | text | | Set-specific notes |
-| completed | boolean | DEFAULT true | Was this set completed? |
+| completed | boolean | DEFAULT false | Was this set completed? |
 | created_at | datetime | NOT NULL | Record creation timestamp |
 | updated_at | datetime | NOT NULL | Last update timestamp |
 
@@ -304,18 +455,30 @@ set.display_set      # "Set 1: 135 lbs × 10 reps"
 
 ```
 User
+ ├─ UserPreference (primary_goal: "physique", training_days: 5)
+ │
  └─ Workout ("Morning Leg Day", 2025-01-15)
-     ├─ WorkoutExercise #1 (Barbell Squat, order: 1)
-     │   ├─ ExerciseSet #1: 135 lbs × 10 reps, RPE: 6
-     │   ├─ ExerciseSet #2: 185 lbs × 8 reps, RPE: 7
-     │   └─ ExerciseSet #3: 225 lbs × 6 reps, RPE: 9
+     ├─ [Optional] WorkoutTemplate (Push Pull Legs)
+     ├─ started_at: 2025-01-15 08:00:00
+     ├─ completed_at: 2025-01-15 08:47:00
      │
-     ├─ WorkoutExercise #2 (Leg Press, order: 2)
-     │   ├─ ExerciseSet #1: 180 lbs × 12 reps
-     │   └─ ExerciseSet #2: 270 lbs × 10 reps
+     ├─ WorkoutExercise #1 (Barbell Squat, order: 1, completed: true)
+     │   ├─ ExerciseSet #1: 135 lbs × 10 reps, RPE: 6, completed: true
+     │   ├─ ExerciseSet #2: 185 lbs × 8 reps, RPE: 7, completed: true
+     │   └─ ExerciseSet #3: 225 lbs × 6 reps, RPE: 9, completed: true
      │
-     └─ WorkoutExercise #3 (Walking Lunges, order: 3)
-         └─ ExerciseSet #1: bodyweight × 20 reps
+     ├─ WorkoutExercise #2 (Leg Press, order: 2, completed: true)
+     │   ├─ ExerciseSet #1: 180 lbs × 12 reps, completed: true
+     │   └─ ExerciseSet #2: 270 lbs × 10 reps, completed: true
+     │
+     └─ WorkoutExercise #3 (Walking Lunges, order: 3, completed: true)
+         └─ ExerciseSet #1: bodyweight × 20 reps, completed: true
+
+WorkoutTemplate (Push Pull Legs - shared across all users)
+ └─ WorkoutTemplateExercise #1 (Barbell Bench Press)
+     ├─ recommended_sets: 4
+     ├─ recommended_reps: "8-12"
+     └─ rest_seconds: 90
 ```
 
 ### Cascade Behavior
@@ -430,6 +593,11 @@ end
 | 20251028122841 | 2025-10-28 | Create exercises catalog table |
 | 20251028123020 | 2025-10-28 | Create workout_exercises join table |
 | 20251028123133 | 2025-10-28 | Create exercise_sets table |
+| 20251114XXXXXX | 2025-11-14 | Create workout_templates table |
+| 20251114XXXXXX | 2025-11-14 | Create workout_template_exercises join table |
+| 20251114XXXXXX | 2025-11-14 | Create user_preferences table |
+| PENDING | TBD | Add workout_template_id, started_at, completed_at to workouts |
+| PENDING | TBD | Change exercise_sets.completed default from true to false |
 
 ## Scaling Considerations
 
@@ -527,19 +695,36 @@ pg_dump -Fc vitalforge_production > backup_$(date +%Y%m%d).dump
 ┌─────────────────┐
 │     USERS       │  Authentication & user management
 │   (accounts)    │
-└────────┬────────┘
-         │ 1:N
-         │
-┌────────▼────────┐
-│    WORKOUTS     │  Individual workout sessions
-│   (sessions)    │
-└────────┬────────┘
-         │ 1:N
-         │
-┌────────▼─────────────┐       ┌──────────────────┐
-│ WORKOUT_EXERCISES    │◄─────┤    EXERCISES     │  Exercise catalog
-│   (join table)       │ N:1   │   (reusable)     │  (shared across users)
-└────────┬─────────────┘       └──────────────────┘
+└────┬────────┬───┘
+     │ 1:N    │ 1:1
+     │        │
+     │   ┌────▼──────────────┐
+     │   │ USER_PREFERENCES  │  Onboarding & fitness goals
+     │   │  (personalization)│
+     │   └───────────────────┘
+     │
+┌────▼────────┐
+│  WORKOUTS   │  Individual workout sessions
+│ (sessions)  │
+└─┬───────┬───┘
+  │ 1:N   │ N:1 (optional)
+  │       │
+  │   ┌───▼──────────────────┐
+  │   │ WORKOUT_TEMPLATES    │  Reusable workout blueprints
+  │   │   (blueprints)       │  (shared across users)
+  │   └───┬──────────────────┘
+  │       │ 1:N
+  │       │
+  │   ┌───▼─────────────────────────┐
+  │   │ WORKOUT_TEMPLATE_EXERCISES  │
+  │   │      (template join)        │
+  │   └───┬─────────────────────────┘
+  │       │ N:1
+  │       │
+┌─▼───────▼─────────┐       ┌──────────────────┐
+│ WORKOUT_EXERCISES │◄─────┤    EXERCISES     │  Exercise catalog
+│   (join table)    │ N:1   │   (reusable)     │  (shared across users)
+└────────┬──────────┘       └──────────────────┘
          │ 1:N
          │
 ┌────────▼────────┐

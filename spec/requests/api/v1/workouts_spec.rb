@@ -5,6 +5,7 @@ require 'rails_helper'
 RSpec.describe 'API V1 Workouts', type: :request do
   let(:user) { User.create!(email: 'test@example.com', password: 'Password123!', first_name: 'Test', last_name: 'User') }
   let(:other_user) { User.create!(email: 'other@example.com', password: 'Password123!', first_name: 'Other', last_name: 'User') }
+  let(:jwt_token) { AuthToken.for_user(user) }
 
   let!(:workout1) do
     user.workouts.create!(
@@ -237,9 +238,191 @@ RSpec.describe 'API V1 Workouts', type: :request do
     end
   end
 
-  describe 'Security Tests' do
+  describe 'POST /api/v1/workout_templates/:id/start' do
+    let!(:exercise) do
+      Exercise.create!(
+        name: 'Push Up',
+        exercise_type: 'Strength',
+        muscle_group: 'Chest',
+        equipment: 'Bodyweight'
+      )
+    end
+
+    let!(:template) do
+      WorkoutTemplate.create!(
+        name: 'Template A',
+        goal_type: 'physique',
+        difficulty_level: 'Beginner',
+        days_per_week: 3,
+        estimated_duration_minutes: 30,
+        total_exercises: 1,
+        source: 'Test',
+        is_active: true
+      ).tap do |t|
+        t.workout_template_exercises.create!(
+          exercise: exercise,
+          order_position: 1,
+          recommended_sets: 3,
+          recommended_reps: '8-12',
+          rest_seconds: 60
+        )
+      end
+    end
+
+    it 'creates a workout from template (JWT)' do
+      post "/api/v1/workout_templates/#{template.id}/start",
+           headers: { 'Authorization' => "Bearer #{jwt_token}" },
+           as: :json
+
+      expect(response).to have_http_status(:created)
+      json = JSON.parse(response.body)
+      expect(json.dig('workout', 'workout_template_id')).to eq(template.id)
+      expect(json.dig('workout', 'completed')).to be(false)
+    end
+
+    it 'returns 409 when an active workout already exists' do
+      existing = user.workouts.create!(
+        name: template.name,
+        workout_date: Date.current,
+        workout_template_id: template.id,
+        completed: false
+      )
+
+      post "/api/v1/workout_templates/#{template.id}/start",
+           headers: { 'Authorization' => "Bearer #{jwt_token}" },
+           as: :json
+
+      expect(response).to have_http_status(:conflict)
+      json = JSON.parse(response.body)
+      expect(json['active_workout_id']).to eq(existing.id)
+    end
+
+    it 'returns 404 for missing template' do
+      post "/api/v1/workout_templates/999999/start",
+           headers: { 'Authorization' => "Bearer #{jwt_token}" },
+           as: :json
+
+      expect(response).to have_http_status(:not_found)
+    end
+
+    it 'returns 401 when unauthenticated' do
+      post "/api/v1/workout_templates/#{template.id}/start", as: :json
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it 'builds exercises and sets from template' do
+      post "/api/v1/workout_templates/#{template.id}/start",
+           headers: { 'Authorization' => "Bearer #{jwt_token}" },
+           as: :json
+
+      expect(response).to have_http_status(:created)
+      json = JSON.parse(response.body)
+      workout_id = json.dig('workout', 'id')
+      workout = Workout.find(workout_id)
+      expect(workout.workout_exercises.size).to eq(1)
+      expect(workout.workout_exercises.first.exercise_sets.size).to eq(3)
+    end
+  end
+
+  describe 'PATCH /api/v1/workouts/:id/start' do
+    let(:workout) do
+      user.workouts.create!(
+        name: 'To Start',
+        workout_date: Date.current,
+        completed: false,
+        workout_type: 'Strength'
+      )
+    end
+
+    it 'sets started_at for the user workout (JWT)' do
+      patch "/api/v1/workouts/#{workout.id}/start",
+            headers: { 'Authorization' => "Bearer #{jwt_token}" },
+            as: :json
+
+      expect(response).to have_http_status(:ok)
+      workout.reload
+      expect(workout.started_at).not_to be_nil
+    end
+
+    it 'returns 401 when unauthenticated' do
+      patch "/api/v1/workouts/#{workout.id}/start", as: :json
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it 'returns 404 when workout belongs to another user' do
+      patch "/api/v1/workouts/#{other_workout.id}/start",
+            headers: { 'Authorization' => "Bearer #{jwt_token}" },
+            as: :json
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe 'PATCH /api/v1/workouts/:id/complete' do
+    let(:workout) do
+      user.workouts.create!(
+        name: 'To Complete',
+        workout_date: Date.current,
+        completed: false,
+        workout_type: 'Strength',
+        started_at: Time.current
+      )
+    end
+
+    it 'marks workout complete for the user (JWT)' do
+      patch "/api/v1/workouts/#{workout.id}/complete",
+            headers: { 'Authorization' => "Bearer #{jwt_token}" },
+            as: :json
+
+      expect(response).to have_http_status(:ok)
+      workout.reload
+      expect(workout.completed).to be(true)
+      expect(workout.completed_at).not_to be_nil
+    end
+
+    it 'returns 401 when unauthenticated' do
+      patch "/api/v1/workouts/#{workout.id}/complete", as: :json
+      expect(response).to have_http_status(:unauthorized)
+    end
+
+    it 'returns 404 when workout belongs to another user' do
+      patch "/api/v1/workouts/#{other_workout.id}/complete",
+            headers: { 'Authorization' => "Bearer #{jwt_token}" },
+            as: :json
+
+      expect(response).to have_http_status(:not_found)
+    end
+  end
+
+  describe 'GET /api/v1/workouts with date filters' do
+    let!(:older_workout) do
+      user.workouts.create!(
+        name: 'Old',
+        workout_date: Date.current - 10,
+        workout_type: 'Cardio',
+        completed: true
+      )
+    end
+
     let(:jwt_token) { AuthToken.for_user(user) }
 
+    it 'returns workouts within start_date and end_date' do
+      start_date = (Date.current - 2).to_s
+      end_date = Date.current.to_s
+
+      get api_v1_workouts_path,
+          params: { start_date: start_date, end_date: end_date },
+          headers: { 'Authorization' => "Bearer #{jwt_token}" },
+          as: :json
+
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      names = json['data'].map { |w| w['name'] }
+      expect(names).to include('Morning Run', 'Evening Weights')
+      expect(names).not_to include('Old')
+    end
+  end
+  describe 'Security Tests' do
     it 'prevents session hijacking by isolating user data' do
       # Get CSRF token and login
       get api_v1_csrf_path, as: :json

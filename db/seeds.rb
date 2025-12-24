@@ -9,6 +9,9 @@ if Rails.env.development? || Rails.env.test?
   ExerciseSet.destroy_all
   WorkoutExercise.destroy_all
   Workout.destroy_all
+  WorkoutTemplateExercise.destroy_all
+  WorkoutTemplate.destroy_all
+  UserPreference.destroy_all
   Exercise.destroy_all
   User.destroy_all
   puts "  ✅ Cleared existing data"
@@ -271,6 +274,232 @@ end
 puts "  ✅ Created #{Exercise.count} exercises"
 
 # ==============================================================================
+# WORKOUT TEMPLATES - Curated Programs
+# ==============================================================================
+
+puts "  📋 Creating workout templates..."
+
+# Template 1: Push Pull Legs (PPL) - Physique Focus
+ppl = WorkoutTemplate.find_or_create_by!(name: "Push Pull Legs") do |t|
+  t.description = "The classic 3-day split targeting all muscle groups with optimal recovery time. Perfect for building muscle mass and aesthetics."
+  t.goal_type = "physique"
+  t.difficulty_level = "Intermediate"
+  t.days_per_week = 6
+  t.estimated_duration_minutes = 45
+  t.total_exercises = 6
+  t.source = "Bodybuilding.com"
+end
+
+# PPL - Push Day Exercises
+[
+  { exercise: "Barbell Bench Press", order: 1, sets: 4, reps: "8-12", rest: 90, notes: "Focus on chest contraction at the top" },
+  { exercise: "Incline Dumbbell Press", order: 2, sets: 3, reps: "10-12", rest: 60, notes: "Target upper chest" },
+  { exercise: "Dumbbell Flyes", order: 3, sets: 3, reps: "12-15", rest: 60, notes: "Stretch at bottom, squeeze at top" },
+  { exercise: "Barbell Overhead Press", order: 4, sets: 3, reps: "8-10", rest: 90, notes: "Keep core tight" },
+  { exercise: "Dumbbell Lateral Raise", order: 5, sets: 3, reps: "12-15", rest: 45, notes: "Lead with elbows" },
+  { exercise: "Cable Pushdown", order: 6, sets: 3, reps: "12-15", rest: 45, notes: "Full extension at bottom" }
+].each do |ex_data|
+  exercise = Exercise.find_by(name: ex_data[:exercise])
+  next unless exercise
+
+  WorkoutTemplateExercise.find_or_create_by!(
+    workout_template: ppl,
+    exercise: exercise,
+    order_position: ex_data[:order]
+  ) do |wte|
+    wte.recommended_sets = ex_data[:sets]
+    wte.recommended_reps = ex_data[:reps]
+    wte.rest_seconds = ex_data[:rest]
+    wte.notes = ex_data[:notes]
+  end
+end
+
+# Template 2: Upper/Lower Split - Strength Focus
+upper_lower = WorkoutTemplate.find_or_create_by!(name: "Upper/Lower Split") do |t|
+  t.description = "Perfect for building strength with compound movements and balanced volume. Ideal for intermediate lifters focused on progressive overload."
+  t.goal_type = "strength"
+  t.difficulty_level = "Intermediate"
+  t.days_per_week = 4
+  t.estimated_duration_minutes = 60
+  t.total_exercises = 8
+  t.source = "T-Nation"
+end
+
+# Upper/Lower - Upper Day Exercises
+[
+  { exercise: "Barbell Bench Press", order: 1, sets: 4, reps: "5", rest: 180, notes: "Heavy compound movement" },
+  { exercise: "Barbell Row", order: 2, sets: 4, reps: "5", rest: 180, notes: "Match bench press volume" },
+  { exercise: "Barbell Overhead Press", order: 3, sets: 3, reps: "6-8", rest: 120, notes: "Strict form" },
+  { exercise: "Pull-ups", order: 4, sets: 3, reps: "8-10", rest: 90, notes: "Add weight if needed" },
+  { exercise: "Incline Dumbbell Press", order: 5, sets: 3, reps: "8-10", rest: 90, notes: "Upper chest focus" },
+  { exercise: "Cable Row", order: 6, sets: 3, reps: "10-12", rest: 60, notes: "Squeeze at contraction" },
+  { exercise: "Barbell Curl", order: 7, sets: 3, reps: "8-10", rest: 60, notes: "Controlled eccentric" },
+  { exercise: "Overhead Triceps Extension", order: 8, sets: 3, reps: "10-12", rest: 60, notes: "Full range of motion" }
+].each do |ex_data|
+  exercise = Exercise.find_by(name: ex_data[:exercise])
+  next unless exercise
+
+  WorkoutTemplateExercise.find_or_create_by!(
+    workout_template: upper_lower,
+    exercise: exercise,
+    order_position: ex_data[:order]
+  ) do |wte|
+    wte.recommended_sets = ex_data[:sets]
+    wte.recommended_reps = ex_data[:reps]
+    wte.rest_seconds = ex_data[:rest]
+    wte.notes = ex_data[:notes]
+  end
+end
+
+# Template 3: Arnold Split - Advanced Physique
+arnold = WorkoutTemplate.find_or_create_by!(name: "Arnold Split") do |t|
+  t.description = "High-volume bodybuilding routine inspired by the Austrian Oak himself. For advanced lifters seeking maximum muscle growth."
+  t.goal_type = "physique"
+  t.difficulty_level = "Advanced"
+  t.days_per_week = 6
+  t.estimated_duration_minutes = 75
+  t.total_exercises = 10
+  t.source = "Arnold Schwarzenegger - Encyclopedia of Modern Bodybuilding"
+end
+
+# Arnold Split - Chest/Back Day
+[
+  { exercise: "Barbell Bench Press", order: 1, sets: 5, reps: "8-12", rest: 90, notes: "Pyramid up in weight" },
+  { exercise: "Barbell Row", order: 2, sets: 5, reps: "8-12", rest: 90, notes: "Superset with bench" },
+  { exercise: "Incline Dumbbell Press", order: 3, sets: 4, reps: "10-12", rest: 60, notes: "Focus on upper chest" },
+  { exercise: "Pull-ups", order: 4, sets: 4, reps: "10-15", rest: 60, notes: "Wide grip" },
+  { exercise: "Dumbbell Flyes", order: 5, sets: 4, reps: "12-15", rest: 60, notes: "Deep stretch" },
+  { exercise: "Bent-Over Dumbbell Row", order: 6, sets: 4, reps: "10-12", rest: 60, notes: "Each arm" },
+  { exercise: "Cable Row", order: 7, sets: 3, reps: "12-15", rest: 45, notes: "Squeeze hard" },
+  { exercise: "Push-ups", order: 8, sets: 3, reps: "AMRAP", rest: 45, notes: "Burnout set" },
+  { exercise: "Cable Curl", order: 9, sets: 3, reps: "12-15", rest: 45, notes: "Peak contraction" },
+  { exercise: "Cable Pushdown", order: 10, sets: 3, reps: "12-15", rest: 45, notes: "Full extension" }
+].each do |ex_data|
+  exercise = Exercise.find_by(name: ex_data[:exercise])
+  next unless exercise
+
+  WorkoutTemplateExercise.find_or_create_by!(
+    workout_template: arnold,
+    exercise: exercise,
+    order_position: ex_data[:order]
+  ) do |wte|
+    wte.recommended_sets = ex_data[:sets]
+    wte.recommended_reps = ex_data[:reps]
+    wte.rest_seconds = ex_data[:rest]
+    wte.notes = ex_data[:notes]
+  end
+end
+
+# Template 4: Full Body Workout - Beginner Strength
+full_body = WorkoutTemplate.find_or_create_by!(name: "Full Body Workout") do |t|
+  t.description = "Comprehensive routine hitting all major muscle groups in one session. Perfect for beginners building a foundation."
+  t.goal_type = "strength"
+  t.difficulty_level = "Beginner"
+  t.days_per_week = 3
+  t.estimated_duration_minutes = 50
+  t.total_exercises = 7
+  t.source = "Starting Strength"
+end
+
+# Full Body Exercises
+[
+  { exercise: "Barbell Squat", order: 1, sets: 3, reps: "5", rest: 180, notes: "Core lift - focus on form" },
+  { exercise: "Barbell Bench Press", order: 2, sets: 3, reps: "5", rest: 180, notes: "Retract shoulder blades" },
+  { exercise: "Barbell Deadlift", order: 3, sets: 1, reps: "5", rest: 240, notes: "One heavy set only" },
+  { exercise: "Barbell Overhead Press", order: 4, sets: 3, reps: "5", rest: 120, notes: "Alternate with bench" },
+  { exercise: "Barbell Row", order: 5, sets: 3, reps: "5", rest: 120, notes: "Pull to lower chest" },
+  { exercise: "Pull-ups", order: 6, sets: 3, reps: "5-8", rest: 90, notes: "Use assistance if needed" },
+  { exercise: "Plank", order: 7, sets: 3, reps: "60 sec", rest: 60, notes: "Core stability" }
+].each do |ex_data|
+  exercise = Exercise.find_by(name: ex_data[:exercise])
+  next unless exercise
+
+  WorkoutTemplateExercise.find_or_create_by!(
+    workout_template: full_body,
+    exercise: exercise,
+    order_position: ex_data[:order]
+  ) do |wte|
+    wte.recommended_sets = ex_data[:sets]
+    wte.recommended_reps = ex_data[:reps]
+    wte.rest_seconds = ex_data[:rest]
+    wte.notes = ex_data[:notes]
+  end
+end
+
+# Template 5: 5/3/1 Program - Strength Focus
+five_three_one = WorkoutTemplate.find_or_create_by!(name: "5/3/1 Program") do |t|
+  t.description = "Jim Wendler's proven strength program for consistent progressive overload. Built around four main lifts with accessory work."
+  t.goal_type = "strength"
+  t.difficulty_level = "Intermediate"
+  t.days_per_week = 4
+  t.estimated_duration_minutes = 55
+  t.total_exercises = 5
+  t.source = "Jim Wendler - 5/3/1"
+end
+
+# 5/3/1 - Squat Day
+[
+  { exercise: "Barbell Squat", order: 1, sets: 3, reps: "5/3/1", rest: 180, notes: "Main lift - follow 5/3/1 progression" },
+  { exercise: "Leg Press", order: 2, sets: 5, reps: "10-15", rest: 90, notes: "Boring But Big accessory" },
+  { exercise: "Front Squat", order: 3, sets: 3, reps: "8-10", rest: 120, notes: "Quad emphasis" },
+  { exercise: "Kettlebell Swing", order: 4, sets: 3, reps: "15-20", rest: 60, notes: "Hip power" },
+  { exercise: "Plank", order: 5, sets: 3, reps: "60 sec", rest: 60, notes: "Core work" }
+].each do |ex_data|
+  exercise = Exercise.find_by(name: ex_data[:exercise])
+  next unless exercise
+
+  WorkoutTemplateExercise.find_or_create_by!(
+    workout_template: five_three_one,
+    exercise: exercise,
+    order_position: ex_data[:order]
+  ) do |wte|
+    wte.recommended_sets = ex_data[:sets]
+    wte.recommended_reps = ex_data[:reps]
+    wte.rest_seconds = ex_data[:rest]
+    wte.notes = ex_data[:notes]
+  end
+end
+
+# Template 6: Bro Split - Physique Focus
+bro_split = WorkoutTemplate.find_or_create_by!(name: "Bro Split") do |t|
+  t.description = "Classic bodybuilding split focusing one muscle group per day. High volume for maximum hypertrophy."
+  t.goal_type = "physique"
+  t.difficulty_level = "Intermediate"
+  t.days_per_week = 5
+  t.estimated_duration_minutes = 60
+  t.total_exercises = 8
+  t.source = "Bodybuilding.com"
+end
+
+# Bro Split - Chest Day
+[
+  { exercise: "Barbell Bench Press", order: 1, sets: 4, reps: "8-10", rest: 90, notes: "Flat bench focus" },
+  { exercise: "Incline Dumbbell Press", order: 2, sets: 4, reps: "10-12", rest: 75, notes: "Upper chest" },
+  { exercise: "Dumbbell Flyes", order: 3, sets: 3, reps: "12-15", rest: 60, notes: "Stretch and squeeze" },
+  { exercise: "Cable Row", order: 4, sets: 3, reps: "12-15", rest: 60, notes: "Decline angle" },
+  { exercise: "Push-ups", order: 5, sets: 3, reps: "15-20", rest: 45, notes: "Burnout" },
+  { exercise: "Cable Pushdown", order: 6, sets: 4, reps: "12-15", rest: 45, notes: "Triceps focus" },
+  { exercise: "Overhead Triceps Extension", order: 7, sets: 3, reps: "12-15", rest: 45, notes: "Long head emphasis" },
+  { exercise: "Plank", order: 8, sets: 3, reps: "45 sec", rest: 45, notes: "Core finisher" }
+].each do |ex_data|
+  exercise = Exercise.find_by(name: ex_data[:exercise])
+  next unless exercise
+
+  WorkoutTemplateExercise.find_or_create_by!(
+    workout_template: bro_split,
+    exercise: exercise,
+    order_position: ex_data[:order]
+  ) do |wte|
+    wte.recommended_sets = ex_data[:sets]
+    wte.recommended_reps = ex_data[:reps]
+    wte.rest_seconds = ex_data[:rest]
+    wte.notes = ex_data[:notes]
+  end
+end
+
+puts "  ✅ Created #{WorkoutTemplate.count} workout templates"
+
+# ==============================================================================
 # DEVELOPMENT TEST DATA
 # ==============================================================================
 
@@ -348,6 +577,7 @@ puts "🎉 Seeding complete!"
 puts ""
 puts "📊 Database Summary:"
 puts "  - Exercises: #{Exercise.count}"
+puts "  - Workout Templates: #{WorkoutTemplate.count}"
 puts "  - Users: #{User.count}"
 puts "  - Workouts: #{Workout.count}"
 puts ""
