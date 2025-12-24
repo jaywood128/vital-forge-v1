@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_23_155208) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_29_224133) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -24,7 +24,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_23_155208) do
     t.integer "rpe"
     t.boolean "to_failure", default: false
     t.text "notes"
-    t.boolean "completed", default: true
+    t.boolean "completed", default: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["workout_exercise_id", "set_number"], name: "index_exercise_sets_on_workout_exercise_and_number"
@@ -46,6 +46,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_23_155208) do
     t.index ["exercise_type"], name: "index_exercises_on_exercise_type"
     t.index ["muscle_group"], name: "index_exercises_on_muscle_group"
     t.index ["name"], name: "index_exercises_on_name", unique: true
+  end
+
+  create_table "user_preferences", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "primary_goal"
+    t.integer "training_days_per_week"
+    t.integer "preferred_workout_duration"
+    t.string "experience_level"
+    t.boolean "onboarding_completed", default: false, null: false
+    t.datetime "onboarding_completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_user_preferences_on_user_id", unique: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -79,6 +92,39 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_23_155208) do
     t.index ["workout_id"], name: "index_workout_exercises_on_workout_id"
   end
 
+  create_table "workout_template_exercises", force: :cascade do |t|
+    t.bigint "workout_template_id", null: false
+    t.bigint "exercise_id", null: false
+    t.integer "order_position", default: 0, null: false
+    t.integer "recommended_sets", null: false
+    t.string "recommended_reps", null: false
+    t.integer "rest_seconds"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["exercise_id"], name: "index_workout_template_exercises_on_exercise_id"
+    t.index ["workout_template_id", "order_position"], name: "index_template_exercises_on_template_and_order"
+    t.index ["workout_template_id"], name: "index_workout_template_exercises_on_workout_template_id"
+  end
+
+  create_table "workout_templates", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.string "goal_type", null: false
+    t.string "difficulty_level"
+    t.integer "days_per_week", null: false
+    t.integer "estimated_duration_minutes"
+    t.integer "total_exercises"
+    t.string "source"
+    t.boolean "is_active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["days_per_week"], name: "index_workout_templates_on_days_per_week"
+    t.index ["difficulty_level"], name: "index_workout_templates_on_difficulty_level"
+    t.index ["goal_type"], name: "index_workout_templates_on_goal_type"
+    t.index ["is_active"], name: "index_workout_templates_on_is_active"
+  end
+
   create_table "workouts", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "name", null: false
@@ -92,14 +138,24 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_23_155208) do
     t.boolean "completed", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "workout_template_id"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.time "scheduled_time", comment: "Optional time of day when workout is scheduled"
     t.index ["completed"], name: "index_workouts_on_completed"
+    t.index ["user_id", "started_at", "completed_at"], name: "index_workouts_on_user_active"
     t.index ["user_id", "workout_date"], name: "index_workouts_on_user_and_date"
     t.index ["user_id"], name: "index_workouts_on_user_id"
+    t.index ["workout_template_id"], name: "index_workouts_on_workout_template_id"
     t.index ["workout_type"], name: "index_workouts_on_workout_type"
   end
 
   add_foreign_key "exercise_sets", "workout_exercises", on_delete: :cascade
+  add_foreign_key "user_preferences", "users", on_delete: :cascade
   add_foreign_key "workout_exercises", "exercises"
   add_foreign_key "workout_exercises", "workouts", on_delete: :cascade
+  add_foreign_key "workout_template_exercises", "exercises"
+  add_foreign_key "workout_template_exercises", "workout_templates", on_delete: :cascade
   add_foreign_key "workouts", "users", on_delete: :cascade
+  add_foreign_key "workouts", "workout_templates"
 end

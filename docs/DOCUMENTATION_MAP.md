@@ -50,8 +50,17 @@ VitalForge Documentation
 │  ├─ CODE_QUALITY.md
 │  │  └─ Testing, linting, coverage
 │  │
-│  └─ STYLING_UPDATE.md
-│     └─ Design system, colors, CSS
+│  ├─ STYLING_UPDATE.md
+│  │  └─ Design system, colors, CSS
+│  │
+│  ├─ WORKOUT_TEMPLATES_SUMMARY.md
+│  │  └─ Workout templates feature implementation
+│  │
+│  ├─ CUSTOM_WORKOUT_PLAN.md
+│  │  └─ Future: Custom workout creation plan
+│  │
+│  └─ FRONTEND_API_GUIDE.md
+│     └─ Frontend integration guide for scheduling features
 │
 └─ 📊 GENERATED (Auto-updated)
    │
@@ -98,7 +107,17 @@ VitalForge Documentation
 **Read these:**
 1. `DATABASE_SCHEMA.md` - Schema design
 2. `MIGRATIONS_GUIDE.md` - Migration patterns
-3. `QUICK_REFERENCE.md` - Database commands
+
+---
+
+### I'm building workout features
+**Read these:**
+1. `WORKOUT_TEMPLATES_SUMMARY.md` - Template starter feature
+2. `CUSTOM_WORKOUT_PLAN.md` - Custom workout creation plan
+3. `FRONTEND_API_GUIDE.md` - Frontend integration guide
+4. `DATABASE_SCHEMA.md` - Workout data structure
+5. `API_DOCUMENTATION.md` - Workout API endpoints
+6. `QUICK_REFERENCE.md` - Database commands
 
 ---
 
@@ -194,7 +213,7 @@ VitalForge Documentation
 
 ## 📊 Documentation Statistics
 
-### Total Documents: 15
+### Total Documents: 17
 
 **Start Here:** 3 files
 - README.md
@@ -210,11 +229,13 @@ VitalForge Documentation
 - DATABASE_SCHEMA.md
 - API_DOCUMENTATION_GUIDE.md
 
-**Development:** 4 files
+**Development:** 6 files
 - DEVELOPMENT.md
 - MIGRATIONS_GUIDE.md
 - CODE_QUALITY.md
 - STYLING_UPDATE.md
+- WORKOUT_TEMPLATES_SUMMARY.md
+- CUSTOM_WORKOUT_PLAN.md
 
 **Generated:** 3 files
 - swagger/v1/swagger.yaml
