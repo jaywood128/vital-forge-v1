@@ -1,17 +1,17 @@
 meta {
-  name: Get Workout by Id
+  name: Complete Workout
   type: http
   seq: 3
 }
 
-get {
-  url: {{baseUrl}}/api/v1/workouts/:id
+patch {
+  url: {{baseUrl}}/api/v1/workouts/:id/complete
   body: none
   auth: inherit
 }
 
 params:path {
-  id: 6
+  id: 
 }
 
 settings {
