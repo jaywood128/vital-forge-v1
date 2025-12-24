@@ -57,3 +57,16 @@ swagger/v1/swagger.yaml
 # Node modules (if needed later)
 /node_modules/
 /yarn-error.log
+
+# Terraform
+/terraform/.terraform/
+/terraform/*.tfstate
+/terraform/*.tfstate.*
+/terraform/*.tfvars
+/terraform/crash.log
+/terraform/.terraform.lock.hcl
+
+# Temporary files
+secrets.json
+task-definition.json
+ecs-task-execution-policy.json
