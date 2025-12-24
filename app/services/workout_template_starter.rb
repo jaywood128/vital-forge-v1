@@ -33,7 +33,6 @@ class WorkoutTemplateStarter
   end
 
   def create_exercises_and_sets(workout)
- 
     @template.workout_template_exercises.each do |template_exercise|
       workout_exercise = workout.workout_exercises.create!(
         exercise_id: template_exercise.exercise_id,

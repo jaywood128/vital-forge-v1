@@ -49,7 +49,7 @@ Rails.application.routes.draw do
 
       resources :workout_templates, only: [ :index, :show ] do
         member do
-          post :start, to: 'workouts#start_from_template'  # Start workout from template (creates new workout)
+          post :start, to: "workouts#start_from_template"  # Start workout from template (creates new workout)
         end
       end
 

@@ -59,4 +59,3 @@ RSpec.describe "API V1 Sessions", type: :request do
     end
   end
 end
-

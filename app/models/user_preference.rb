@@ -6,7 +6,7 @@ class UserPreference < ApplicationRecord
   validates :primary_goal, inclusion: {
     in: %w[physique strength],
     allow_nil: true,
-    message: '%{value} is not a valid goal'
+    message: "%{value} is not a valid goal"
   }
   validates :training_days_per_week, numericality: {
     only_integer: true,
@@ -32,4 +32,3 @@ class UserPreference < ApplicationRecord
     )
   end
 end
-

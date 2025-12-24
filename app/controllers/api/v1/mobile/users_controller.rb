@@ -4,7 +4,7 @@ module Api
   module V1
     module Mobile
       class UsersController < Api::V1::Mobile::BaseController
-        skip_before_action :authenticate_mobile_user!, only: [:create]
+        skip_before_action :authenticate_mobile_user!, only: [ :create ]
 
         # POST /api/v1/mobile/signup
         def create
@@ -48,4 +48,3 @@ module Api
     end
   end
 end
-

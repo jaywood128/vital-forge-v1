@@ -7,14 +7,14 @@ module Api
 
       skip_before_action :require_api_authentication
 
-      before_action :set_user_preference, only: [:show, :update]
+      before_action :set_user_preference, only: [ :show, :update ]
 
       # GET /api/v1/user_preference
       def show
         if @user_preference
           render json: { data: serialize_preference(@user_preference) }, status: :ok
         else
-          render json: { error: 'User preferences not found' }, status: :not_found
+          render json: { error: "User preferences not found" }, status: :not_found
         end
       end
 
@@ -76,4 +76,3 @@ module Api
     end
   end
 end
-

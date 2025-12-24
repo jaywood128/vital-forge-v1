@@ -84,4 +84,3 @@ RSpec.describe UserPreference, type: :model do
     end
   end
 end
-

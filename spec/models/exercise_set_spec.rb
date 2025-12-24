@@ -102,4 +102,3 @@ RSpec.describe ExerciseSet, type: :model do
     end
   end
 end
-

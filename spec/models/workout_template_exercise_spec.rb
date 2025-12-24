@@ -127,4 +127,3 @@ RSpec.describe WorkoutTemplateExercise, type: :model do
     end
   end
 end
-

@@ -3,7 +3,6 @@
 require "rails_helper"
 
 RSpec.describe "API V1 Exercise Sets", type: :request do
-
   before(:each) do
     # Clean database before each test
     WorkoutTemplateExercise.delete_all
@@ -349,4 +348,3 @@ RSpec.describe "API V1 Exercise Sets", type: :request do
     end
   end
 end
-

@@ -43,4 +43,3 @@ RSpec.describe "API V1 Mobile Users", type: :request do
     end
   end
 end
-

@@ -70,7 +70,7 @@ RSpec.describe WorkoutTemplateStarter do
 
       expect(we.exercise_sets.count).to eq(3)
       expect(we.exercise_sets.map(&:reps)).to all(eq(8)) # parsed from "8-12"
-      expect(we.exercise_sets.map(&:set_number)).to eq([1, 2, 3])
+      expect(we.exercise_sets.map(&:set_number)).to eq([ 1, 2, 3 ])
     end
   end
 end

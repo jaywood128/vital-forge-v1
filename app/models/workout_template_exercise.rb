@@ -22,4 +22,3 @@ class WorkoutTemplateExercise < ApplicationRecord
   # Scopes
   default_scope { order(:order_position) }
 end
-

@@ -13,7 +13,7 @@ class CreateWorkoutTemplateExercises < ActiveRecord::Migration[8.0]
     end
 
     # Add indexes for common queries
-    add_index :workout_template_exercises, [:workout_template_id, :order_position],
+    add_index :workout_template_exercises, [ :workout_template_id, :order_position ],
               name: 'index_template_exercises_on_template_and_order'
   end
 end

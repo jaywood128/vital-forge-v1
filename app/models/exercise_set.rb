@@ -5,16 +5,11 @@ class ExerciseSet < ApplicationRecord
 
   # Validations
   validates :set_number, presence: true,
-  validates :set_number, presence: true,
             uniqueness: { scope: :workout_exercise_id },
             numericality: { greater_than: 0 }
   validates :reps, presence: true, numericality: { greater_than: 0 }
   validates :weight, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :weight_unit, inclusion: { in: %w[lbs kg] }
-  validates :rpe, numericality: {
-    only_integer: true,
-    greater_than_or_equal_to: 1,
-    less_than_or_equal_to: 10
   validates :rpe, numericality: {
     only_integer: true,
     greater_than_or_equal_to: 1,

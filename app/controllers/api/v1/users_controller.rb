@@ -3,7 +3,7 @@
 module Api
   module V1
     class UsersController < Api::V1::BaseController
-      skip_before_action :require_api_authentication, only: [:create]
+      skip_before_action :require_api_authentication, only: [ :create ]
 
       # POST /api/v1/signup
       def create
@@ -44,4 +44,3 @@ module Api
     end
   end
 end
-
