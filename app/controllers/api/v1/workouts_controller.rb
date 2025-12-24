@@ -79,6 +79,10 @@ class Api::V1::WorkoutsController < ApplicationController
     render json: { workout: serialize_workout(workout) }, status: :ok
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Workout not found" }, status: :not_found
+  rescue Workout::InvalidTransition => e
+    render json: { error: e.message }, status: :unprocessable_entity
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { errors: e.record.errors.to_hash(true) }, status: :unprocessable_entity
   end
 
   # PATCH /api/v1/workouts/:id/complete
@@ -88,6 +92,10 @@ class Api::V1::WorkoutsController < ApplicationController
     render json: { workout: serialize_workout(workout) }, status: :ok
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Workout not found" }, status: :not_found
+  rescue Workout::InvalidTransition => e
+    render json: { error: e.message }, status: :unprocessable_entity
+  rescue ActiveRecord::RecordInvalid => e
+    render json: { errors: e.record.errors.to_hash(true) }, status: :unprocessable_entity
   end
 
   private

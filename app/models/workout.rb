@@ -1,4 +1,6 @@
 class Workout < ApplicationRecord
+  class InvalidTransition < StandardError; end
+
   # Associations
   belongs_to :user
   belongs_to :workout_template, optional: true
@@ -54,14 +56,22 @@ class Workout < ApplicationRecord
 
   # Workout lifecycle methods
   def start!
+    raise InvalidTransition, "Workout already completed" if completed?
+    raise InvalidTransition, "Workout already started" if started_at.present?
     update!(started_at: Time.current)
   end
 
   def complete!
+    raise InvalidTransition, "Workout already completed" if completed?
+    raise InvalidTransition, "Workout has not been started" if started_at.blank?
+
+    completed_time = Time.current
+    duration_minutes = [  (((completed_time - started_at) / 60).round), 1  ].max
+
     update!(
       completed: true,
-      completed_at: Time.current,
-      duration_minutes: calculate_duration
+      completed_at: completed_time,
+      duration_minutes: duration_minutes
     )
   end
 
@@ -70,6 +80,7 @@ class Workout < ApplicationRecord
   end
 
   def check_and_complete!
+    return unless started_at.present?
     complete! if all_exercises_completed? && !completed?
   end
 
