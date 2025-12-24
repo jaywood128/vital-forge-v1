@@ -46,10 +46,6 @@ class Api::V1::SessionsController < Api::V1::BaseController
       # (e.g. from Next.js frontend to Rails API).
       # In development, :lax is sufficient and safer for localhost.
       same_site: Rails.env.production? ? :none : :lax
-      # We use :none in production to allow the cookie to be sent in cross-site requests
-      # (e.g. from Next.js frontend to Rails API).
-      # In development, :lax is sufficient and safer for localhost.
-      same_site: Rails.env.production? ? :none : :lax
     }
   end
 
