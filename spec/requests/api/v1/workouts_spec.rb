@@ -334,6 +334,30 @@ RSpec.describe 'API V1 Workouts', type: :request do
       )
     end
 
+    it 'returns 422 when workout was already started (JWT)' do
+      workout.update!(started_at: 5.minutes.ago)
+
+      patch "/api/v1/workouts/#{workout.id}/start",
+            headers: { 'Authorization' => "Bearer #{jwt_token}" },
+            as: :json
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = JSON.parse(response.body)
+      expect(json['error']).to eq('Workout already started')
+    end
+
+    it 'returns 422 when workout is already completed (JWT)' do
+      workout.update!(completed: true, completed_at: 1.minute.ago, started_at: 10.minutes.ago)
+
+      patch "/api/v1/workouts/#{workout.id}/start",
+            headers: { 'Authorization' => "Bearer #{jwt_token}" },
+            as: :json
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = JSON.parse(response.body)
+      expect(json['error']).to eq('Workout already completed')
+    end
+
     it 'sets started_at for the user workout (JWT)' do
       patch "/api/v1/workouts/#{workout.id}/start",
             headers: { 'Authorization' => "Bearer #{jwt_token}" },
@@ -369,6 +393,30 @@ RSpec.describe 'API V1 Workouts', type: :request do
       )
     end
 
+    it 'returns 422 when workout has not been started (JWT)' do
+      workout.update!(started_at: nil)
+
+      patch "/api/v1/workouts/#{workout.id}/complete",
+            headers: { 'Authorization' => "Bearer #{jwt_token}" },
+            as: :json
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = JSON.parse(response.body)
+      expect(json['error']).to eq('Workout has not been started')
+    end
+
+    it 'returns 422 when workout is already completed (JWT)' do
+      workout.update!(completed: true, completed_at: 1.minute.ago)
+
+      patch "/api/v1/workouts/#{workout.id}/complete",
+            headers: { 'Authorization' => "Bearer #{jwt_token}" },
+            as: :json
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = JSON.parse(response.body)
+      expect(json['error']).to eq('Workout already completed')
+    end
+
     it 'marks workout complete for the user (JWT)' do
       patch "/api/v1/workouts/#{workout.id}/complete",
             headers: { 'Authorization' => "Bearer #{jwt_token}" },
@@ -378,6 +426,7 @@ RSpec.describe 'API V1 Workouts', type: :request do
       workout.reload
       expect(workout.completed).to be(true)
       expect(workout.completed_at).not_to be_nil
+      expect(workout.duration_minutes).to be >= 1
     end
 
     it 'returns 401 when unauthenticated' do
