@@ -17,7 +17,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       # Health check endpoint for ALB
-      get "health", to: proc { [200, {}, ["ok"]] }
+      get "health", to: proc { [ 200, {}, [ "ok" ] ] }
 
       # CSRF token for Next.js
       get "csrf", to: "csrf#show"
