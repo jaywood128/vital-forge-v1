@@ -33,7 +33,8 @@ class ApplicationController < ActionController::Base
     return unless protect_against_forgery?
     cookies["CSRF-TOKEN"] = {
       value: form_authenticity_token,
-      secure: Rails.env.production?,
+      # Secure cookies in production and staging (both use HTTPS)
+      secure: !Rails.env.development?,
       same_site: :lax
     }
   end
