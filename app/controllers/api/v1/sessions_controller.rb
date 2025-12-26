@@ -5,7 +5,6 @@ class Api::V1::SessionsController < Devise::SessionsController
 
   def create
 
-    #binding.irb
     # Ensure params are in Devise's expected structure for Warden
     unless params[:user].is_a?(ActionController::Parameters)
       params[:user] = ActionController::Parameters.new(email: params[:email], password: params[:password])
@@ -49,5 +48,3 @@ class Api::V1::SessionsController < Devise::SessionsController
     }
   end
 end
-
-

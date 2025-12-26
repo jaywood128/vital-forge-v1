@@ -1,9 +1,9 @@
 Rails.application.routes.draw do
   if defined?(Rswag::Ui::Engine)
-    mount Rswag::Ui::Engine => '/api-docs'
+    mount Rswag::Ui::Engine => "/api-docs"
   end
   if defined?(Rswag::Api::Engine)
-    mount Rswag::Api::Engine => '/api-docs'
+    mount Rswag::Api::Engine => "/api-docs"
   end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
@@ -31,11 +31,11 @@ Rails.application.routes.draw do
   get "dashboard", to: "dashboard#index"
 
   # Devise minimal routes (skip HTML flows for now)
-  devise_for :users, skip: [:registrations, :passwords, :confirmations]
+  devise_for :users, skip: [ :registrations, :passwords, :confirmations ]
 
   namespace :api do
     namespace :v1 do
-      get    "csrf",         to: "csrf#show"
+      get "csrf",         to: "csrf#show"
       devise_scope :user do
         post   "login",      to: "sessions#create"
         delete "logout",      to: "sessions#destroy"

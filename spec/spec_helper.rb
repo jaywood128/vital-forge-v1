@@ -35,4 +35,3 @@ RSpec.configure do |config|
   # Seed global randomization
   Kernel.srand config.seed
 end
-

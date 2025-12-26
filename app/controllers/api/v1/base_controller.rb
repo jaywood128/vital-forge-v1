@@ -24,5 +24,3 @@ class Api::V1::BaseController < ApplicationController
     render json: { errors: e.record.errors.to_hash(true) }, status: :unprocessable_entity
   end
 end
-
-

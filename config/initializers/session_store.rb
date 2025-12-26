@@ -6,4 +6,3 @@ Rails.application.config.session_store :cookie_store,
   # Use :lax for better compatibility; change to :none if you need true cross-site requests
   same_site: :lax,
   expire_after: 2.weeks
-

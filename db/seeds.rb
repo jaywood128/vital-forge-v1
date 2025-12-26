@@ -276,19 +276,19 @@ puts "  ✅ Created #{Exercise.count} exercises"
 
 if Rails.env.development?
   puts "  👤 Creating test user..."
-  
+
   user = User.find_or_create_by!(email: "test@vitalforge.com") do |u|
     u.password = "password123"
     u.password_confirmation = "password123"
     u.first_name = "Test"
     u.last_name = "User"
   end
-  
+
   puts "  ✅ Test user: #{user.email} (password: password123)"
-  
+
   # Create sample workout
   puts "  🏋️ Creating sample workout..."
-  
+
   workout = user.workouts.find_or_create_by!(
     name: "Monday Push Day",
     workout_date: Date.today
@@ -297,7 +297,7 @@ if Rails.env.development?
     w.completed = false
     w.notes = "Focus on progressive overload"
   end
-  
+
   # Add bench press to workout
   bench_press = Exercise.find_by(name: "Barbell Bench Press")
   if bench_press
@@ -308,7 +308,7 @@ if Rails.env.development?
       we.rest_between_sets = 120
       we.notes = "Warm up with bar first"
     end
-    
+
     # Add sets if they don't exist
     if workout_exercise.exercise_sets.empty?
       workout_exercise.exercise_sets.create!([
@@ -319,7 +319,7 @@ if Rails.env.development?
       ])
     end
   end
-  
+
   # Add overhead press to workout
   ohp = Exercise.find_by(name: "Barbell Overhead Press")
   if ohp
@@ -329,7 +329,7 @@ if Rails.env.development?
     ) do |we|
       we.rest_between_sets = 90
     end
-    
+
     if workout_exercise2.exercise_sets.empty?
       workout_exercise2.exercise_sets.create!([
         { set_number: 1, reps: 10, weight: 95, rpe: 6, weight_unit: "lbs" },
@@ -338,7 +338,7 @@ if Rails.env.development?
       ])
     end
   end
-  
+
   puts "  ✅ Sample workout created with #{workout.workout_exercises.count} exercises"
   puts "  📊 Total sets logged: #{workout.total_sets}"
 end

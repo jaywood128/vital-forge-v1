@@ -54,10 +54,10 @@ group :development, :test do
 
   # Load environment variables from .env file
   gem "dotenv-rails"
-  
+
   # RSpec for testing
   gem "rspec-rails"
-  
+
   # API documentation with Swagger/OpenAPI
   gem "rswag-specs"
 end
@@ -65,7 +65,7 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
-  
+
   # API documentation UI and routes
   gem "rswag-api"
   gem "rswag-ui"

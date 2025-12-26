@@ -13,5 +13,3 @@ class Api::V1::CsrfController < ApplicationController
     render json: { csrfToken: token }, status: :ok
   end
 end
-
-

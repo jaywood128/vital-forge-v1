@@ -22,5 +22,3 @@ class AddDeviseToUsers < ActiveRecord::Migration[8.0]
     remove_column :users, :encrypted_password, :string if column_exists?(:users, :encrypted_password)
   end
 end
-
-
