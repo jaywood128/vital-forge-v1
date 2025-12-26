@@ -45,6 +45,12 @@
 # Test coverage
 /coverage/
 
+# RuboCop reports
+rubocop-result.json
+
+# Swagger/OpenAPI generated files (regenerate with: rake rswag:specs:swaggerize)
+swagger/v1/swagger.yaml
+
 # Bruno Environment Variables
 /bruno/environments/*.bru
 

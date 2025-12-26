@@ -35,6 +35,7 @@ class ApplicationController < ActionController::Base
       value: form_authenticity_token,
       # Secure cookies in production and staging (both use HTTPS)
       secure: !Rails.env.development?,
+      # Allow CSRF tokens between subdomains since we own the domain.
       same_site: :lax
     }
   end

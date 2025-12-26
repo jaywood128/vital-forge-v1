@@ -1,28 +1,36 @@
-class Api::V1::SessionsController < Devise::SessionsController
-  respond_to :json
-  skip_before_action :require_authentication
-  protect_from_forgery with: :exception
+class Api::V1::SessionsController < Api::V1::BaseController
+  skip_before_action :require_api_authentication, only: [ :create ]
+  skip_before_action :verify_authenticity_token, only: [ :create ]
 
   def create
+    user = User.find_by(email: params.dig(:user, :email)&.downcase)
+    if user&.valid_password?(params.dig(:user, :password))
+      # Check if account is locked
+      if user.locked?
+        return render json: {
+          error: "Account is locked due to too many failed login attempts. Please try again later."
+        }, status: :locked
+      end
 
-    # Ensure params are in Devise's expected structure for Warden
-    unless params[:user].is_a?(ActionController::Parameters)
-      params[:user] = ActionController::Parameters.new(email: params[:email], password: params[:password])
+      # Reset failed login attempts on successful login
+      user.reset_failed_login!
+      user.update(last_login_at: Time.current)
+
+      # Create session
+      reset_session
+      session[:user_id] = user.id
+      set_fresh_csrf_cookie
+
+      render json: { data: { user: serialize_user(user) } }, status: :ok
+    else
+      # Increment failed login attempts
+      user&.increment_failed_login!
+
+      render json: { error: "Invalid email or password" }, status: :unauthorized
     end
-
-    user = warden.authenticate(scope: :user)
-    return render json: { error: "Invalid email or password" }, status: :unauthorized unless user
-
-    reset_session
-    sign_in(:user, user)
-    session[:user_id] = user.id
-    set_fresh_csrf_cookie
-    render json: { data: { user: serialize_user(user) } }, status: :ok
   end
 
   def destroy
-    sign_out(resource_name)
-    session.delete(:user_id)
     reset_session
     set_fresh_csrf_cookie
     head :no_content
@@ -33,9 +41,11 @@ class Api::V1::SessionsController < Devise::SessionsController
   def set_fresh_csrf_cookie
     cookies["CSRF-TOKEN"] = {
       value: form_authenticity_token,
-      # Secure cookies in production and staging (both use HTTPS)
-      secure: !Rails.env.development?,
-      same_site: :lax
+      secure: Rails.env.production?,
+      # We use :none in production to allow the cookie to be sent in cross-site requests
+      # (e.g. from Next.js frontend to Rails API).
+      # In development, :lax is sufficient and safer for localhost.
+      same_site: Rails.env.production? ? :none : :lax
     }
   end
 
@@ -46,5 +56,15 @@ class Api::V1::SessionsController < Devise::SessionsController
       first_name: user.first_name,
       last_name: user.last_name
     }
+  end
+
+  def verify_signed_out_user
+    return unless signed_in?(resource_name)
+    render json: { error: "User is already signed out" }, status: :unauthorized
+  end
+
+  def verify_signed_out_user
+    return unless signed_in?(resource_name)
+    render json: { error: "User is already signed out" }, status: :unauthorized
   end
 end

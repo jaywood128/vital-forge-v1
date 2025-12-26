@@ -1,6 +1,9 @@
 class Workout < ApplicationRecord
+  class InvalidTransition < StandardError; end
+
   # Associations
   belongs_to :user
+  belongs_to :workout_template, optional: true
   has_many :workout_exercises, -> { order(:order_position) }, dependent: :destroy
   has_many :exercises, through: :workout_exercises
 
@@ -22,6 +25,10 @@ class Workout < ApplicationRecord
 
   # Scopes for common queries
   scope :completed, -> { where(completed: true) }
+  scope :in_progress, -> { where(completed: false).where.not(started_at: nil) }
+  scope :not_started, -> { where(completed: false, started_at: nil) }
+  scope :from_template, -> { where.not(workout_template_id: nil) }
+  scope :custom, -> { where(workout_template_id: nil) }
   scope :recent, -> { order(workout_date: :desc) }
   scope :by_date_range, ->(start_date, end_date) {
     where(workout_date: start_date..end_date)
@@ -40,5 +47,42 @@ class Workout < ApplicationRecord
   def total_sets
     # Count all sets across all exercises
     workout_exercises.sum(&:total_sets)
+  end
+
+  # Workout lifecycle methods
+  def start!
+    raise InvalidTransition, "Workout already completed" if completed?
+    raise InvalidTransition, "Workout already started" if started_at.present?
+    update!(started_at: Time.current)
+  end
+
+  def complete!
+    raise InvalidTransition, "Workout already completed" if completed?
+    raise InvalidTransition, "Workout has not been started" if started_at.blank?
+
+    completed_time = Time.current
+    duration_minutes = [  (((completed_time - started_at) / 60).round), 1  ].max
+
+    update!(
+      completed: true,
+      completed_at: completed_time,
+      duration_minutes: duration_minutes
+    )
+  end
+
+  def all_exercises_completed?
+    workout_exercises.any? && workout_exercises.all?(&:completed?)
+  end
+
+  def check_and_complete!
+    return unless started_at.present?
+    complete! if all_exercises_completed? && !completed?
+  end
+
+  private
+
+  def calculate_duration
+    return nil unless started_at && completed_at
+    ((completed_at - started_at) / 60).round
   end
 end

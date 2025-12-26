@@ -22,11 +22,15 @@ class ExerciseSet < ApplicationRecord
   scope :with_weight, -> { where.not(weight: nil) }
   scope :to_failure, -> { where(to_failure: true) }
 
+  # Callbacks
+  after_save :check_exercise_completion
+
   # Helper methods
   def volume
     # Volume for this set = reps × weight
     reps * (weight || 0)
   end
+
 
   def display_set
     # Human-readable format: "Set 1: 135 lbs × 10 reps"
@@ -34,15 +38,19 @@ class ExerciseSet < ApplicationRecord
     "Set #{set_number}: #{weight_str} × #{reps} reps"
   end
 
+
   def one_rep_max
     # Estimate 1RM using Brzycki formula: weight / (1.0278 - 0.0278 × reps)
     return nil unless weight && reps > 0 && reps <= 12
 
+
     (weight / (1.0278 - (0.0278 * reps))).round(2)
   end
 
+
   def intensity_description
     return nil unless rpe
+
 
     case rpe
     when 1..3 then "Light"
@@ -50,5 +58,12 @@ class ExerciseSet < ApplicationRecord
     when 7..8 then "Hard"
     when 9..10 then "Maximum"
     end
+  end
+
+  private
+
+  def check_exercise_completion
+    workout_exercise.check_and_complete!
+    workout_exercise.workout.check_and_complete!
   end
 end
