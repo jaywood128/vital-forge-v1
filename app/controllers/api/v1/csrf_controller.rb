@@ -6,8 +6,7 @@ class Api::V1::CsrfController < ApplicationController
     token = form_authenticity_token
     cookies["CSRF-TOKEN"] = {
       value: token,
-      # Secure cookies in production and staging (both use HTTPS)
-      secure: !Rails.env.development?,
+      secure: Rails.env.production?,  # ✅ Changed this line
       same_site: :lax
     }
     render json: { csrfToken: token }, status: :ok

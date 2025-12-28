@@ -60,8 +60,13 @@ swagger/v1/swagger.yaml
 
 # Terraform
 /terraform/.terraform/
-/terraform/.terraform.lock.hcl
-/terraform/terraform.tfstate
-/terraform/terraform.tfstate.backup
+/terraform/*.tfstate
+/terraform/*.tfstate.*
 /terraform/*.tfvars
-!/terraform/terraform.tfvars.example
+/terraform/crash.log
+/terraform/.terraform.lock.hcl
+
+# Temporary files
+secrets.json
+task-definition.json
+ecs-task-execution-policy.json

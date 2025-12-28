@@ -7,6 +7,7 @@ class Workout < ApplicationRecord
   has_many :workout_exercises, -> { order(:order_position) }, dependent: :destroy
   has_many :exercises, through: :workout_exercises
 
+
   # Validations
   validates :name, presence: true, length: { maximum: 100 }
   validates :workout_date, presence: true
@@ -23,6 +24,7 @@ class Workout < ApplicationRecord
     allow_nil: true
   }
 
+
   # Scopes for common queries
   scope :completed, -> { where(completed: true) }
   scope :in_progress, -> { where(completed: false).where.not(started_at: nil) }
@@ -35,14 +37,17 @@ class Workout < ApplicationRecord
   }
   scope :by_type, ->(type) { where(workout_type: type) }
 
+
   # Default scope to order by most recent first
   default_scope { order(workout_date: :desc) }
+
 
   # Helper methods
   def total_volume
     # Total volume across all exercises in this workout
     workout_exercises.sum(&:total_volume)
   end
+
 
   def total_sets
     # Count all sets across all exercises

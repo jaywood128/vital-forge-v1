@@ -13,7 +13,6 @@ class Api::V1::BaseController < ApplicationController
   private
 
   def require_api_authentication
-    binnding.irb
     return if logged_in?
 
     render json: { error: "Authentication required" }, status: :unauthorized

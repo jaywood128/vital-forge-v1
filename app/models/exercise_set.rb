@@ -2,6 +2,7 @@ class ExerciseSet < ApplicationRecord
   # Associations
   belongs_to :workout_exercise
 
+
   # Validations
   validates :set_number, presence: true,
             uniqueness: { scope: :workout_exercise_id },
@@ -15,6 +16,7 @@ class ExerciseSet < ApplicationRecord
     less_than_or_equal_to: 10
   }, allow_nil: true
   validates :rest_after_seconds, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
+
 
   # Scopes
   scope :completed, -> { where(completed: true) }
