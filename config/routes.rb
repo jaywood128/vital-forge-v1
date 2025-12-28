@@ -29,9 +29,6 @@ Rails.application.routes.draw do
       post "login", to: "sessions#create"
       delete "logout", to: "sessions#destroy"
       get "current_user", to: "current_users#show"
-      post "login", to: "sessions#create"
-      delete "logout", to: "sessions#destroy"
-      get "current_user", to: "current_users#show"
 
       # Mobile routes - JWT token authentication
       namespace :mobile do
@@ -39,28 +36,9 @@ Rails.application.routes.draw do
         post "login", to: "sessions#create"
         delete "logout", to: "sessions#destroy"
         get "current_user", to: "current_users#show"
-        post "signup", to: "users#create"
-        post "login", to: "sessions#create"
-        delete "logout", to: "sessions#destroy"
-        get "current_user", to: "current_users#show"
       end
 
       # Shared resources (support both session and JWT authentication)
-      resources :workouts, only: [ :index, :show ] do
-        member do
-          patch :start      # Begin active workout
-          patch :complete   # Finish workout
-        end
-      end
-
-      resources :workout_templates, only: [ :index, :show ] do
-        member do
-          post :start, to: "workouts#start_from_template"  # Start workout from template (creates new workout)
-        end
-      end
-
-      resources :exercise_sets, only: [ :update ]
-      resource :user_preference, only: [ :show, :create, :update ]
       resources :workouts, only: [ :index, :show ] do
         member do
           patch :start      # Begin active workout

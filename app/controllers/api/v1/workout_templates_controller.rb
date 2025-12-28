@@ -75,7 +75,6 @@ module Api
             @auth_method = :jwt if @current_user
           end
         end
-
         # Fall back to session
         if @current_user.nil? && session[:user_id].present?
           @current_user = User.find_by(id: session[:user_id])

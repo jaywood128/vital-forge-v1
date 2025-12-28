@@ -28,7 +28,7 @@ Edit `terraform.tfvars` with your values:
 
 ```hcl
 aws_region     = "us-east-1"
-aws_account_id = "381783740921"  # Your AWS account ID
+aws_account_id = "123456789012"  # Replace with actualy AWS account ID
 
 domain_name    = "yourdomain.com"     # CHANGE THIS
 api_subdomain  = "api"
