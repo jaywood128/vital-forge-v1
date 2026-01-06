@@ -45,13 +45,18 @@ class Workout < ApplicationRecord
   # Helper methods
   def total_volume
     # Total volume across all exercises in this workout
-    workout_exercises.sum(&:total_volume)
+    # Use SQL to calculate: SUM(weight * reps) across all exercise_sets
+    workout_exercises
+      .joins(:exercise_sets)
+      .sum('exercise_sets.weight * exercise_sets.reps')
   end
 
 
   def total_sets
-    # Count all sets across all exercises
-    workout_exercises.sum(&:total_sets)
+    # Count all sets across all exercises using SQL
+    workout_exercises
+      .joins(:exercise_sets)
+      .count('exercise_sets.id')
   end
 
   # Workout lifecycle methods
@@ -76,7 +81,8 @@ class Workout < ApplicationRecord
   end
 
   def all_exercises_completed?
-    workout_exercises.any? && workout_exercises.all?(&:completed?)
+    # Use database query instead of loading all records
+    workout_exercises.exists? && !workout_exercises.where(completed: false).exists?
   end
 
   def check_and_complete!

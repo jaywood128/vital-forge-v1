@@ -56,6 +56,6 @@ USER 1000:1000
 # Entrypoint prepares the database
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
-# Thruster runs on port 80
-EXPOSE 80
-CMD ["./bin/thrust", "./bin/rails", "server"]
+# Rails server runs on port 3000
+EXPOSE 3000
+CMD ["./bin/rails", "server", "-b", "0.0.0.0", "-p", "3000"]

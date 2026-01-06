@@ -14,6 +14,7 @@ class Api::V1::WorkoutsController < ApplicationController
   # Query params: start_date, end_date (for date range filtering)
   def index
     workouts = current_user.workouts
+              .includes(workout_exercises: [:exercise, :exercise_sets])
 
     # Apply date range filter if provided
     if params[:start_date].present? && params[:end_date].present?
@@ -33,7 +34,9 @@ class Api::V1::WorkoutsController < ApplicationController
 
   # GET /api/v1/workouts/:id
   def show
-    workout = current_user.workouts.find(params[:id])
+    workout = current_user.workouts
+                         .includes(workout_exercises: [:exercise, :exercise_sets])
+                         .find(params[:id])
 
     render json: {
       data: serialize_workout_with_exercises(workout)
@@ -127,7 +130,7 @@ class Api::V1::WorkoutsController < ApplicationController
 
   def serialize_workout_with_exercises(workout)
     workout_data = serialize_workout(workout)
-    workout_data[:workout_exercises] = workout.workout_exercises.includes(:exercise, :exercise_sets).map do |we|
+    workout_data[:workout_exercises] = workout.workout_exercises.map do |we|
       {
         id: we.id,
         order_position: we.order_position,

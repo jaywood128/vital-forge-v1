@@ -18,7 +18,7 @@ resource "aws_lb" "main" {
 
 # Target Group for ECS tasks
 resource "aws_lb_target_group" "app" {
-  name        = "${var.app_name}-tg"
+  name        = "${var.app_name}-tg-v2"
   port        = var.container_port
   protocol    = "HTTP"
   vpc_id      = data.aws_vpc.default.id
@@ -38,7 +38,7 @@ resource "aws_lb_target_group" "app" {
   deregistration_delay = 30
 
   tags = {
-    Name = "${var.app_name}-tg"
+    Name = "${var.app_name}-tg-v2"
   }
 }
 
