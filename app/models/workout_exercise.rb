@@ -25,7 +25,7 @@ class WorkoutExercise < ApplicationRecord
   def total_volume
     # Volume = sum of (reps × weight) for all sets
     # Use SQL SUM instead of loading all records into memory
-    exercise_sets.sum('reps * COALESCE(weight, 0)')
+    exercise_sets.sum("reps * COALESCE(weight, 0)")
   end
 
 

@@ -48,7 +48,7 @@ class Workout < ApplicationRecord
     # Use SQL to calculate: SUM(weight * reps) across all exercise_sets
     workout_exercises
       .joins(:exercise_sets)
-      .sum('exercise_sets.weight * exercise_sets.reps')
+      .sum("exercise_sets.weight * exercise_sets.reps")
   end
 
 
@@ -56,7 +56,7 @@ class Workout < ApplicationRecord
     # Count all sets across all exercises using SQL
     workout_exercises
       .joins(:exercise_sets)
-      .count('exercise_sets.id')
+      .count("exercise_sets.id")
   end
 
   # Workout lifecycle methods
