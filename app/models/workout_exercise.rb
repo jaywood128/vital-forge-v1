@@ -17,13 +17,15 @@ class WorkoutExercise < ApplicationRecord
 
   # Helper methods
   def total_sets
+    # Use SQL count instead of loading records
     exercise_sets.count
   end
 
 
   def total_volume
-    # Volume = sum of (sets × reps × weight) for all sets
-    exercise_sets.sum { |set| set.reps * (set.weight || 0) }
+    # Volume = sum of (reps × weight) for all sets
+    # Use SQL SUM instead of loading all records into memory
+    exercise_sets.sum("reps * COALESCE(weight, 0)")
   end
 
 
@@ -50,7 +52,8 @@ class WorkoutExercise < ApplicationRecord
 
   # Completion tracking
   def all_sets_completed?
-    exercise_sets.any? && exercise_sets.all?(&:completed)
+    # Use database query instead of loading all records
+    exercise_sets.exists? && !exercise_sets.where(completed: false).exists?
   end
 
   def check_and_complete!
