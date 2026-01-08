@@ -15,7 +15,7 @@ RSpec.describe SendWeeklyProgressEmailJob, type: :job do
       last_name: 'User'
     )
   end
-  
+
   describe '#perform' do
     context 'when user exists and has workouts' do
       let(:exercise) do
@@ -142,7 +142,7 @@ RSpec.describe SendWeeklyProgressEmailJob, type: :job do
           workout_date: 2.days.ago,
           completed: true
         )
-        
+
         # Mock the entire mail delivery chain
         mail_message = double('Mail::Message')
         allow(WorkoutMailer).to receive(:weekly_progress).and_return(mail_message)
@@ -184,7 +184,7 @@ RSpec.describe SendWeeklyProgressEmailJob, type: :job do
     it 'stores user_id as argument' do
       Sidekiq::Testing.fake! do
         described_class.perform_async(user.id)
-        expect(described_class.jobs.first['args']).to eq([user.id])
+        expect(described_class.jobs.first['args']).to eq([ user.id ])
       end
     end
   end

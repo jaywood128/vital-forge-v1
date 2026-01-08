@@ -10,7 +10,7 @@ RSpec.describe WorkoutMailer, type: :mailer do
         last_name: 'Doe'
       )
     end
-    
+
     let(:stats) do
       {
         total_workouts: 5,
@@ -21,13 +21,13 @@ RSpec.describe WorkoutMailer, type: :mailer do
         most_common_exercise: 'Bench Press'
       }
     end
-    
+
     let(:mail) { described_class.weekly_progress(user, stats) }
 
     it 'renders the headers' do
       expect(mail.subject).to match(/Your Weekly Fitness Progress/)
-      expect(mail.to).to eq([user.email])
-      expect(mail.from).to eq(['noreply@vitalforge.com'])
+      expect(mail.to).to eq([ user.email ])
+      expect(mail.from).to eq([ 'noreply@vitalforge.com' ])
     end
 
     it 'includes the subject with VitalForge branding' do

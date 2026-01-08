@@ -1,4 +1,4 @@
-class SendWeeklyProgressEmailJob 
+class SendWeeklyProgressEmailJob
   include Sidekiq::Job
   queue_as :default
 
@@ -24,4 +24,3 @@ class SendWeeklyProgressEmailJob
     raise # Re-raise to trigger retry
   end
 end
-

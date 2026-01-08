@@ -8,7 +8,7 @@ class WeeklyProgressCalculator
   def calculate
     workouts = @user.workouts
                     .where(workout_date: @start_date..@end_date)
-                    .includes(workout_exercises: [:exercise, :exercise_sets])
+                    .includes(workout_exercises: [ :exercise, :exercise_sets ])
 
     {
       total_workouts: workouts.count,
@@ -68,4 +68,3 @@ class WeeklyProgressCalculator
     exercise_counts.max_by { |_name, count| count }&.first
   end
 end
-

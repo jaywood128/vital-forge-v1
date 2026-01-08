@@ -1,10 +1,10 @@
-class WeeklyProgressReportJob 
+class WeeklyProgressReportJob
   include Sidekiq::Job
   sidekiq_options queue: :default, retry: 2
 
   def perform
     Rails.logger.info "Starting weekly progress report generation for all users"
-    
+
     total_users = 0
     queued_jobs = 0
 
@@ -21,4 +21,3 @@ class WeeklyProgressReportJob
     raise
   end
 end
-

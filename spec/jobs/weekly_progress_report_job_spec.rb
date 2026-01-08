@@ -9,7 +9,7 @@ RSpec.describe WeeklyProgressReportJob, type: :job do
 
   # Include ActiveJob test helpers
   include ActiveJob::TestHelper
-  
+
   describe '#perform' do
     context 'with multiple users' do
       let!(:user1) do
@@ -53,7 +53,7 @@ RSpec.describe WeeklyProgressReportJob, type: :job do
           described_class.new.perform
 
           user_ids = SendWeeklyProgressEmailJob.jobs.map { |job| job['args'].first }
-          expect(user_ids).to match_array([user1.id, user2.id, user3.id])
+          expect(user_ids).to match_array([ user1.id, user2.id, user3.id ])
         end
       end
 
@@ -135,20 +135,20 @@ RSpec.describe WeeklyProgressReportJob, type: :job do
         # Use a generic error instead
         allow(SendWeeklyProgressEmailJob).to receive(:perform_async).and_raise(StandardError.new("Connection failed"))
       end
-    
+
       it 'raises error for retry' do
         expect {
           described_class.new.perform
         }.to raise_error(StandardError, "Connection failed")  # Match the error message
       end
-    
+
       it 'logs error message' do
         allow(Rails.logger).to receive(:error)
-    
+
         expect {
           described_class.new.perform
         }.to raise_error(StandardError)
-    
+
         expect(Rails.logger).to have_received(:error)
           .with(/Failed to generate weekly progress reports: Connection failed/)
       end

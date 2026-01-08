@@ -9,7 +9,7 @@ RSpec.describe WeeklyProgressCalculator do
       last_name: 'User'
     )
   end
-  
+
   let(:calculator) { described_class.new(user) }
 
   describe '#calculate' do
@@ -35,7 +35,7 @@ RSpec.describe WeeklyProgressCalculator do
           equipment: 'Barbell'
         )
       end
-      
+
       let(:squats) do
         Exercise.create!(
           name: 'Squats',
@@ -53,7 +53,7 @@ RSpec.describe WeeklyProgressCalculator do
           completed: true
         )
       end
-      
+
       let!(:workout2) do
         user.workouts.create!(
           name: 'Evening Workout',
