@@ -1,8 +1,12 @@
 class User < ApplicationRecord
   devise :database_authenticatable, :validatable
-  
+
   # Associations
   has_many :workouts, dependent: :destroy
+  has_one :user_preference, dependent: :destroy
+
+  # Delegations
+  delegate :primary_goal, :training_days_per_week, to: :user_preference, allow_nil: true
 
   # Validations
   validates :email,
@@ -10,7 +14,6 @@ class User < ApplicationRecord
     uniqueness: { case_sensitive: false },
     format: { with: URI::MailTo::EMAIL_REGEXP }
 
-  # Devise handles password validations; keep names
   validates :first_name, :last_name, presence: true
 
   # Normalize email to lowercase before saving
@@ -57,4 +60,3 @@ class User < ApplicationRecord
     self.email = email.downcase.strip if email.present?
   end
 end
-

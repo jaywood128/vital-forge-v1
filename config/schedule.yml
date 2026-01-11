@@ -1,0 +1,8 @@
+# Sidekiq-Cron Schedule
+# Run weekly progress reports every Monday at 8 AM
+weekly_progress_report:
+  cron: "0 8 * * 1"  # Every Monday at 8:00 AM
+  class: "WeeklyProgressReportJob"
+  queue: default
+  description: "Send weekly progress report emails to all users"
+

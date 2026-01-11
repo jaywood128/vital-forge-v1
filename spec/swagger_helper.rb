@@ -35,17 +35,23 @@ RSpec.configure do |config|
       ],
       components: {
         securitySchemes: {
+          bearer_auth: {
+            type: :http,
+            scheme: :bearer,
+            bearerFormat: "JWT",
+            description: "JWT token for mobile authentication. Format: Bearer <token>"
+          },
           csrf_token: {
             type: :apiKey,
             name: "X-CSRF-Token",
             in: :header,
-            description: "CSRF protection token (required for POST/PUT/DELETE)"
+            description: "CSRF protection token (required for web POST/PUT/DELETE)"
           },
           session_cookie: {
             type: :apiKey,
             name: "Cookie",
             in: :header,
-            description: "Session cookie (automatically set after login)"
+            description: "Session cookie (automatically set after web login)"
           }
         },
         schemas: {
@@ -129,4 +135,3 @@ RSpec.configure do |config|
   # the key, this may want to be changed to avoid putting yaml in json files
   config.swagger_format = :yaml
 end
-

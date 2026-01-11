@@ -1,0 +1,32 @@
+meta {
+  name: Sign up
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/v1/signup
+  body: json
+  auth: inherit
+}
+
+headers {
+  X-CSRF-Token: {{csrfToken}}
+}
+
+body:json {
+  {
+    "user": {
+      "email": "jaywood128@gmail.com",
+      "password": "{{password}}",
+      "password_confirmation": "{{password_confirmation}}",
+      "first_name": "Johnathon",
+      "last_name": "Wood"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

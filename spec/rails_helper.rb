@@ -37,5 +37,11 @@ RSpec.configure do |config|
 
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
-end
 
+  # Configure ActionMailer for testing
+  config.before(:each) do
+    ActionMailer::Base.delivery_method = :test
+    ActionMailer::Base.perform_deliveries = true
+    ActionMailer::Base.deliveries.clear
+  end
+end

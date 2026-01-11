@@ -1,0 +1,31 @@
+💪 YOUR WEEKLY PROGRESS
+==============================================
+
+Hi <%= @user.first_name %>,
+
+Great work this week! Here's a summary of your fitness journey:
+
+📊 YOUR STATS
+--------------
+Workouts Completed: <%= @stats[:total_workouts] %>
+Total Sets: <%= @stats[:total_sets] %>
+Total Volume: <%= number_with_delimiter(@stats[:total_volume]) %> lbs
+Active Minutes: <%= @stats[:total_duration] %>
+
+<% if @stats[:streak] > 0 %>
+🔥 STREAK ALERT!
+----------------
+You've worked out <%= @stats[:streak] %> days in a row this week. Keep it up!
+
+<% end %>
+<% if @stats[:most_common_exercise] %>
+💡 Your go-to exercise this week: <%= @stats[:most_common_exercise] %>
+
+<% end %>
+View your full dashboard: http://localhost:3000/dashboard
+
+Keep forging your vital self! 💪
+
+---
+VitalForge - Your Weekly Fitness Summary
+

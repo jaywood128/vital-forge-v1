@@ -28,6 +28,13 @@ gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
 
+# Background job processing with Sidekiq
+gem "sidekiq", "~> 7.2"
+gem "sidekiq-cron", "~> 1.12"
+
+# Circuit breaker pattern for resilience
+gem "circuitbox", "~> 2.0"
+
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
 
@@ -39,12 +46,19 @@ gem "thruster", require: false
 
 # Allow Cross-Origin Resource Sharing (CORS) [https://github.com/cyu/rack-cors]
 gem "rack-cors"
+
+# JSON Web Tokens for mobile authentication [https://github.com/jwt/ruby-jwt]
+gem "jwt"
+
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
+  # Pry for debugging
+  gem "pry-rails"
+  gem "pry-byebug"
 
   # Static analysis for security vulnerabilities [https://brakemanscanner.org/]
   gem "brakeman", require: false
@@ -54,10 +68,10 @@ group :development, :test do
 
   # Load environment variables from .env file
   gem "dotenv-rails"
-  
+
   # RSpec for testing
   gem "rspec-rails"
-  
+
   # API documentation with Swagger/OpenAPI
   gem "rswag-specs"
 end
@@ -65,7 +79,7 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
-  
+
   # API documentation UI and routes
   gem "rswag-api"
   gem "rswag-ui"
@@ -76,6 +90,10 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+
+  # Code coverage
+  gem "simplecov", require: false
+  gem "simplecov-json", require: false
 end
 
 ruby "3.2.6"
