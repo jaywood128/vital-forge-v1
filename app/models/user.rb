@@ -4,6 +4,7 @@ class User < ApplicationRecord
   # Associations
   has_many :workouts, dependent: :destroy
   has_one :user_preference, dependent: :destroy
+  has_many :weekly_feedbacks, dependent: :destroy
 
   # Delegations
   delegate :primary_goal, :training_days_per_week, to: :user_preference, allow_nil: true

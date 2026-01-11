@@ -1,0 +1,60 @@
+# Sidekiq Queue Configuration Guide
+# 
+# This file documents the queue strategy for VitalForge background jobs.
+# Actual queue configuration is in config/initializers/sidekiq.rb
+
+queues:
+  default:
+    description: "Fast, frequent jobs (emails, notifications)"
+    examples:
+      - SendWeeklyProgressEmailJob (150ms per job)
+      - Other quick operations
+    characteristics:
+      - Low latency (~150ms)
+      - High volume
+      - Cost: negligible
+    recommended_workers: 8-10
+
+  ai:
+    description: "AI/OpenAI jobs (expensive, rate-limited)"
+    examples:
+      - GenerateWeeklyFeedbackJob (2-5s per job)
+      - Future: AI workout generation, exercise suggestions
+    characteristics:
+      - Higher latency (2-5s)
+      - API rate limits (~3,500/min)
+      - Cost: $0.0003 per generation
+    recommended_workers: 2-3
+    notes:
+      - Limit workers to avoid OpenAI rate limits
+      - Monitor cost per job
+      - Consider implementing circuit breaker for failures
+
+# How to run Sidekiq with multiple queues:
+#
+# Development (all queues):
+#   bundle exec sidekiq
+#
+# Production (specific queue allocation):
+#   # Fast email workers (8 workers)
+#   bundle exec sidekiq -q default -c 8
+#
+#   # AI workers (2 workers, lower concurrency to respect rate limits)
+#   bundle exec sidekiq -q ai -c 2
+#
+# Or combined:
+#   bundle exec sidekiq -q default,ai -c 10
+
+# Monitoring:
+# - Sidekiq Web UI: /sidekiq
+# - Monitor queue depths: default vs ai
+# - Track job durations and failure rates separately
+# - Set up alerts for:
+#   - AI queue depth > 100 (may hit rate limits)
+#   - AI job failure rate > 5%
+#   - Default queue latency > 30s
+
+# Cost Estimates (1000 users):
+# - GenerateWeeklyFeedbackJob: 1000 jobs × $0.0003 = $0.30/week
+# - With 10 workers, completes in ~5-8 minutes
+# - With 2 workers, completes in ~20-30 minutes (still acceptable for weekly job)

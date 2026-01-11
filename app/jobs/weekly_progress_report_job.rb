@@ -12,10 +12,12 @@ class WeeklyProgressReportJob
       total_users += 1
       # Queue individual email jobs to process in parallel
       SendWeeklyProgressEmailJob.perform_async(user.id)
+      GenerateWeeklyFeedbackJob.perform_async(user.id)  # NEW
       queued_jobs += 1
     end
 
     Rails.logger.info "Queued #{queued_jobs} weekly progress email jobs for #{total_users} users"
+    Rails.logger.info "Queued #{queued_jobs} weekly progress email + AI feedback jobs for #{total_users} users"
   rescue StandardError => e
     Rails.logger.error "Failed to generate weekly progress reports: #{e.message}"
     raise
