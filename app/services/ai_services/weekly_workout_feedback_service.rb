@@ -20,7 +20,7 @@ module AiServices
           { role: "user", content: prompt }
         ],
         model: "gpt-4o-mini",
-        temperature: 0.7,
+        temperature: 0.9,
         max_tokens: 300
       )
 

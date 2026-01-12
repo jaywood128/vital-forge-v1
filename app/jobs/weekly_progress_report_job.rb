@@ -5,19 +5,34 @@ class WeeklyProgressReportJob
   def perform
     Rails.logger.info "Starting weekly progress report generation for all users"
 
-    total_users = 0
-    queued_jobs = 0
+    queued_emails = 0
+    queued_ai_feedback = 0
+    active_users = 0
 
-    User.find_each do |user|
-      total_users += 1
-      # Queue individual email jobs to process in parallel
+    # Define the week range (matching WeeklyProgressCalculator)
+    start_date = 1.week.ago.beginning_of_day
+    end_date = Time.current.end_of_day
+
+    # Only process users who have workouts for the current week
+    User.joins(:workouts)
+        .where(workouts: { workout_date: start_date..end_date })
+        .distinct
+        .find_each do |user|
+      active_users += 1
       SendWeeklyProgressEmailJob.perform_async(user.id)
-      GenerateWeeklyFeedbackJob.perform_async(user.id)  # NEW
-      queued_jobs += 1
+      queued_emails += 1
+      GenerateWeeklyFeedbackJob.perform_async(user.id)
+      queued_ai_feedback += 1
     end
 
-    Rails.logger.info "Queued #{queued_jobs} weekly progress email jobs for #{total_users} users"
-    Rails.logger.info "Queued #{queued_jobs} weekly progress email + AI feedback jobs for #{total_users} users"
+    # Calculate how many users were skipped
+    total_user_count = User.count
+    skipped_users = total_user_count - active_users
+
+    # Comprehensive summary log
+    Rails.logger.info "Weekly progress report complete: " \
+                      "#{queued_emails} email jobs + #{queued_ai_feedback} AI feedback jobs queued " \
+                      "for #{active_users} active users (#{skipped_users} users skipped - no workouts this week)"
   rescue StandardError => e
     Rails.logger.error "Failed to generate weekly progress reports: #{e.message}"
     raise
