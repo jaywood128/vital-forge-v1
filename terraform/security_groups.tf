@@ -1,56 +1,57 @@
 # Security Groups
 
 # ALB Security Group - allows HTTP/HTTPS from internet
-resource "aws_security_group" "alb" {
-  name        = "${var.app_name}-alb-sg"
-  description = "Security group for ${var.app_name} Application Load Balancer"
-  vpc_id      = data.aws_vpc.default.id
+# TEMPORARILY DISABLED: ALB removed
+# resource "aws_security_group" "alb" {
+#   name        = "${var.app_name}-alb-sg"
+#   description = "Security group for ${var.app_name} Application Load Balancer"
+#   vpc_id      = data.aws_vpc.default.id
+#
+#   # Allow HTTP from anywhere
+#   ingress {
+#     description = "HTTP from internet"
+#     from_port   = 80
+#     to_port     = 80
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+#
+#   # Allow HTTPS from anywhere
+#   ingress {
+#     description = "HTTPS from internet"
+#     from_port   = 443
+#     to_port     = 443
+#     protocol    = "tcp"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+#
+#   # Allow all outbound traffic
+#   egress {
+#     description = "Allow all outbound"
+#     from_port   = 0
+#     to_port     = 0
+#     protocol    = "-1"
+#     cidr_blocks = ["0.0.0.0/0"]
+#   }
+#
+#   tags = {
+#     Name = "${var.app_name}-alb-sg"
+#   }
+# }
 
-  # Allow HTTP from anywhere
-  ingress {
-    description = "HTTP from internet"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow HTTPS from anywhere
-  ingress {
-    description = "HTTPS from internet"
-    from_port   = 443
-    to_port     = 443
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Allow all outbound traffic
-  egress {
-    description = "Allow all outbound"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.app_name}-alb-sg"
-  }
-}
-
-# ECS Security Group - allows traffic from ALB only
+# ECS Security Group - allows direct HTTP/HTTPS from internet
 resource "aws_security_group" "ecs" {
   name        = "${var.app_name}-ecs-sg"
   description = "Security group for ${var.app_name} ECS tasks"
   vpc_id      = data.aws_vpc.default.id
 
-  # Allow traffic from ALB on container port
+  # Allow HTTP from anywhere (for direct access without ALB)
   ingress {
-    description     = "Allow traffic from ALB"
-    from_port       = var.container_port
-    to_port         = var.container_port
-    protocol        = "tcp"
-    security_groups = [aws_security_group.alb.id]
+    description = "HTTP from internet"
+    from_port   = 3000
+    to_port     = 3000
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   # Allow all outbound traffic

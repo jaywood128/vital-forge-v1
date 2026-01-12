@@ -1,17 +1,19 @@
-output "alb_dns_name" {
-  description = "DNS name of the Application Load Balancer"
-  value       = aws_lb.main.dns_name
-}
+# TEMPORARILY DISABLED: ALB removed
+# output "alb_dns_name" {
+#   description = "DNS name of the Application Load Balancer"
+#   value       = aws_lb.main.dns_name
+# }
 
-output "alb_zone_id" {
-  description = "Zone ID of the Application Load Balancer"
-  value       = aws_lb.main.zone_id
-}
+# output "alb_zone_id" {
+#   description = "Zone ID of the Application Load Balancer"
+#   value       = aws_lb.main.zone_id
+# }
 
-output "api_url" {
-  description = "Full API URL"
-  value       = "https://${var.api_subdomain}.${var.domain_name}"
-}
+# NOTE: Without ALB, this URL is not valid. Access ECS task directly via public IP on port 3000
+# output "api_url" {
+#   description = "Full API URL"
+#   value       = "https://${var.api_subdomain}.${var.domain_name}"
+# }
 
 output "ecr_repository_url" {
   description = "URL of the ECR repository"
@@ -38,10 +40,11 @@ output "rds_endpoint" {
   value       = data.aws_db_instance.vitalforge.endpoint
 }
 
-output "acm_certificate_arn" {
-  description = "ARN of the ACM certificate"
-  value       = aws_acm_certificate.main.arn
-}
+# TEMPORARILY DISABLED: ACM certificate removed with ALB
+# output "acm_certificate_arn" {
+#   description = "ARN of the ACM certificate"
+#   value       = aws_acm_certificate.main.arn
+# }
 
 output "ecs_security_group_id" {
   description = "Security group ID for ECS tasks"

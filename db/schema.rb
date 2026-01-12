@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_29_224133) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_11_151949) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -76,6 +76,19 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_29_224133) do
     t.datetime "remember_created_at"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["password_reset_token"], name: "index_users_on_password_reset_token", unique: true
+  end
+
+  create_table "weekly_feedbacks", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.date "week_start", null: false
+    t.text "feedback_text", null: false
+    t.jsonb "stats_snapshot"
+    t.datetime "generated_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "week_start"], name: "index_weekly_feedbacks_on_user_id_and_week_start", unique: true
+    t.index ["user_id"], name: "index_weekly_feedbacks_on_user_id"
+    t.index ["week_start"], name: "index_weekly_feedbacks_on_week_start"
   end
 
   create_table "workout_exercises", force: :cascade do |t|
@@ -152,6 +165,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_29_224133) do
 
   add_foreign_key "exercise_sets", "workout_exercises", on_delete: :cascade
   add_foreign_key "user_preferences", "users", on_delete: :cascade
+  add_foreign_key "weekly_feedbacks", "users"
   add_foreign_key "workout_exercises", "exercises"
   add_foreign_key "workout_exercises", "workouts", on_delete: :cascade
   add_foreign_key "workout_template_exercises", "exercises"
