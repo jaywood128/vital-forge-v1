@@ -98,3 +98,5 @@ group :test do
 end
 
 ruby "3.2.6"
+
+gem "honeybadger", "~> 6.2"
