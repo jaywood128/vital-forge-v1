@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_11_151949) do
+ActiveRecord::Schema[8.0].define(version: 2026_01_14_004735) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -86,6 +86,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_11_151949) do
     t.datetime "generated_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "email_sent", default: false, null: false
+    t.index ["user_id", "week_start", "email_sent"], name: "index_weekly_feedbacks_on_user_week_email"
     t.index ["user_id", "week_start"], name: "index_weekly_feedbacks_on_user_id_and_week_start", unique: true
     t.index ["user_id"], name: "index_weekly_feedbacks_on_user_id"
     t.index ["week_start"], name: "index_weekly_feedbacks_on_week_start"
