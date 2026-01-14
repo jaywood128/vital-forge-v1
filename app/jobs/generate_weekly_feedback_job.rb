@@ -10,6 +10,13 @@ class GenerateWeeklyFeedbackJob
 
     Rails.logger.info "Generating AI feedback for user #{user.id}"
 
+    # Quick check first (optimization)
+    existing_feedback = WeeklyFeedback.find_by(user: user, week_start: week_start)
+    if existing_feedback.present?
+      Rails.logger.info "Feedback already exists for user #{user.id} week #{week_start}"
+      return
+    end
+
     # Calculate stats once
     stats = WeeklyProgressCalculator.new(user).calculate
 

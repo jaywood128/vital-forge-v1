@@ -378,7 +378,7 @@ RSpec.describe GenerateWeeklyFeedbackJob, type: :job do
       expect(Rails.logger).to have_received(:info)
         .with("Generating AI feedback for user #{user.id}")
       expect(Rails.logger).to have_received(:info)
-        .with("Successfully saved AI feedback for user #{user.id} (#{user.email})")
+        .with("Feedback already exists for user #{user.id} week #{Date.current.beginning_of_week}")
     end
 
     it 'preserves existing feedback text when record already exists' do
@@ -392,8 +392,13 @@ RSpec.describe GenerateWeeklyFeedbackJob, type: :job do
 
     it 'handles race condition gracefully with RecordNotUnique' do
       allow(Rails.logger).to receive(:info)
+      allow(Rails.logger).to receive(:error)
 
-      # Simulate race condition by stubbing find_or_create_by! to raise RecordNotUnique
+      # Remove the existing feedback to allow the job to proceed past the early check
+      WeeklyFeedback.where(user: user, week_start: Date.current.beginning_of_week).destroy_all
+
+      # Simulate race condition: find_by returns nil (no record), but create! fails
+      allow(WeeklyFeedback).to receive(:find_by).and_return(nil)
       allow(WeeklyFeedback).to receive(:find_or_create_by!)
         .and_raise(ActiveRecord::RecordNotUnique.new("duplicate key"))
 
@@ -404,7 +409,7 @@ RSpec.describe GenerateWeeklyFeedbackJob, type: :job do
       }.not_to raise_error
 
       expect(Rails.logger).to have_received(:info)
-        .with(/Feedback already exists for user #{user.id} week/)
+        .with(/Feedback already exists for user #{user.id} week.*race condition/)
     end
   end
 end
