@@ -392,7 +392,7 @@ RSpec.describe GenerateWeeklyFeedbackJob, type: :job do
 
     it 'handles race condition gracefully with RecordNotUnique' do
       allow(Rails.logger).to receive(:info)
-      
+
       # Simulate race condition by stubbing find_or_create_by! to raise RecordNotUnique
       allow(WeeklyFeedback).to receive(:find_or_create_by!)
         .and_raise(ActiveRecord::RecordNotUnique.new("duplicate key"))
