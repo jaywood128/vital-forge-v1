@@ -353,7 +353,7 @@ RSpec.describe GenerateWeeklyFeedbackJob, type: :job do
     end
   end
 
-  describe 'preventing duplicate feedback for same week' do
+  describe 'preventing duplicate feedback for same week (idempotency)' do
     before do
       # Create existing feedback for this week
       WeeklyFeedback.create!(
@@ -361,12 +361,41 @@ RSpec.describe GenerateWeeklyFeedbackJob, type: :job do
         feedback_text: "Old feedback",
         week_start: Date.current.beginning_of_week,
         generated_at: 1.day.ago,
-        stats_snapshot: weekly_stats
+        stats_snapshot: weekly_stats,
+        email_sent: false
       )
     end
 
-    it 'skips generation when feedback already exists for this week' do
+    it 'does not create additional WeeklyFeedback records when one exists' do
       allow(Rails.logger).to receive(:info)
+
+      expect {
+        Sidekiq::Testing.inline! do
+          described_class.perform_async(user.id)
+        end
+      }.not_to change { WeeklyFeedback.count }
+
+      expect(Rails.logger).to have_received(:info)
+        .with("Generating AI feedback for user #{user.id}")
+      expect(Rails.logger).to have_received(:info)
+        .with("Successfully saved AI feedback for user #{user.id} (#{user.email})")
+    end
+
+    it 'preserves existing feedback text when record already exists' do
+      Sidekiq::Testing.inline! do
+        described_class.perform_async(user.id)
+      end
+
+      feedback = WeeklyFeedback.find_by(user: user, week_start: Date.current.beginning_of_week)
+      expect(feedback.feedback_text).to eq("Old feedback")
+    end
+
+    it 'handles race condition gracefully with RecordNotUnique' do
+      allow(Rails.logger).to receive(:info)
+      
+      # Simulate race condition by stubbing find_or_create_by! to raise RecordNotUnique
+      allow(WeeklyFeedback).to receive(:find_or_create_by!)
+        .and_raise(ActiveRecord::RecordNotUnique.new("duplicate key"))
 
       expect {
         Sidekiq::Testing.inline! do
@@ -375,25 +404,7 @@ RSpec.describe GenerateWeeklyFeedbackJob, type: :job do
       }.not_to raise_error
 
       expect(Rails.logger).to have_received(:info)
-        .with(/Skipping AI feedback for user #{user.id} - feedback already exists/)
-    end
-
-    it 'does not call AI service when feedback exists' do
-      allow(AiServices::WeeklyWorkoutFeedbackService).to receive(:new)
-
-      Sidekiq::Testing.inline! do
-        described_class.perform_async(user.id)
-      end
-
-      expect(AiServices::WeeklyWorkoutFeedbackService).not_to have_received(:new)
-    end
-
-    it 'does not create additional WeeklyFeedback records' do
-      expect {
-        Sidekiq::Testing.inline! do
-          described_class.perform_async(user.id)
-        end
-      }.not_to change { WeeklyFeedback.count }
+        .with(/Feedback already exists for user #{user.id} week/)
     end
   end
 end
