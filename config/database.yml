@@ -84,3 +84,9 @@ test:
 production:
   <<: *default
   url: <%= ENV["DATABASE_URL"] %>
+
+  # Cache database - uses same connection as production for now
+  # TODO: Configure separate cache database for better performance
+  cache:
+    <<: *default
+    url: <%= ENV["DATABASE_URL"] %>

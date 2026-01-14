@@ -61,6 +61,12 @@ Rails.application.routes.draw do
 
       resources :exercise_sets, only: [ :update ]
       resource :user_preference, only: [ :show, :create, :update ]
+
+      # Weekly AI feedback
+      resource :weekly_feedbacks, only: [] do
+        get :current, on: :collection
+      end
+
       # resources :exercises
     end
   end
