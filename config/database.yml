@@ -82,26 +82,11 @@ test:
 # for a full overview on how database connection configuration can be specified.
 #
 production:
-  primary:
-    <<: *default
-    database: vital_forge_v1_production
-    username: vital_forge_v1
-    password: <%= ENV["VITAL_FORGE_V1_DATABASE_PASSWORD"] %>
+  <<: *default
+  url: <%= ENV["DATABASE_URL"] %>
+
+  # Cache database - uses same connection as production for now
+  # TODO: Configure separate cache database for better performance
   cache:
     <<: *default
-    database: vital_forge_v1_production_cache
-    username: vital_forge_v1
-    password: <%= ENV["VITAL_FORGE_V1_DATABASE_PASSWORD"] %>
-    migrations_paths: db/cache_migrate
-  queue:
-    <<: *default
-    database: vital_forge_v1_production_queue
-    username: vital_forge_v1
-    password: <%= ENV["VITAL_FORGE_V1_DATABASE_PASSWORD"] %>
-    migrations_paths: db/queue_migrate
-  cable:
-    <<: *default
-    database: vital_forge_v1_production_cable
-    username: vital_forge_v1
-    password: <%= ENV["VITAL_FORGE_V1_DATABASE_PASSWORD"] %>
-    migrations_paths: db/cable_migrate
+    url: <%= ENV["DATABASE_URL"] %>

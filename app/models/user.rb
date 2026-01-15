@@ -1,8 +1,21 @@
 class User < ApplicationRecord
   devise :database_authenticatable, :validatable
-  
+
   # Associations
   has_many :workouts, dependent: :destroy
+  has_one :user_preference, dependent: :destroy
+  has_many :weekly_feedbacks, dependent: :destroy
+
+  scope :with_workouts_between, ->(start_date, end_date) {
+    joins(:workouts).where(workouts: { workout_date: start_date..end_date }).distinct
+  }
+
+  scope :with_workouts_this_week, -> {
+    with_workouts_between(1.week.ago.beginning_of_day, Time.current.end_of_day)
+  }
+
+  # Delegations
+  delegate :primary_goal, :training_days_per_week, to: :user_preference, allow_nil: true
 
   # Validations
   validates :email,
@@ -10,7 +23,6 @@ class User < ApplicationRecord
     uniqueness: { case_sensitive: false },
     format: { with: URI::MailTo::EMAIL_REGEXP }
 
-  # Devise handles password validations; keep names
   validates :first_name, :last_name, presence: true
 
   # Normalize email to lowercase before saving
@@ -57,4 +69,3 @@ class User < ApplicationRecord
     self.email = email.downcase.strip if email.present?
   end
 end
-

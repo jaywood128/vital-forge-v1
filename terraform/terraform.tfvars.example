@@ -1,0 +1,33 @@
+# Copy this file to terraform.tfvars and fill in your values
+# terraform.tfvars is gitignored for security
+
+# AWS Configuration
+aws_region     = "us-east-1"
+aws_account_id = "381783740921"
+
+# Application
+app_name    = "vitalforge-v1"
+environment = "staging"
+
+# Domain - CHANGE THIS to your actual domain
+domain_name   = "forge-fitness-journal.app"
+api_subdomain = "staging"  # staging.forge-fitness-journal.app
+
+# Database (existing RDS)
+rds_identifier = "database-1"
+
+# Container
+container_cpu    = 256
+container_memory = 512
+container_port   = 3000
+desired_count    = 1
+
+# Secrets - FILL THESE IN WITH YOUR ACTUAL VALUES
+# database_url: Get your RDS password and URL-encode special characters
+#   Example encoding: ! → %21, @ → %40, # → %23, $ → %24, % → %25, ^ → %5E, & → %26, * → %2A, ( → %28, ) → %29
+# rails_master_key: Get from `cat config/master.key` in your Rails project
+# secret_key_base: Generate with `rails secret` command
+
+database_url     = "postgresql://postgres:YOUR_URL_ENCODED_PASSWORD@database-1.cfkilgwocvoy.us-east-1.rds.amazonaws.com:5432/vital_forge_production"
+rails_master_key = "your_rails_master_key_from_config_master_key"
+secret_key_base  = "your_secret_key_base_generate_with_rails_secret_command"

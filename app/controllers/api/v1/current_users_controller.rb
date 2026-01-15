@@ -20,5 +20,3 @@ class Api::V1::CurrentUsersController < Api::V1::BaseController
     }
   end
 end
-
-

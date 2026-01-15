@@ -1,0 +1,65 @@
+meta {
+  name: Get Workouts with Date Range
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{base_url}}/api/v1/workouts?start_date=2025-11-01&end_date=2025-11-30
+  body: none
+  auth: none
+}
+
+params:query {
+  start_date: 2025-11-01
+  end_date: 2025-11-30
+}
+
+headers {
+  Accept: application/json
+  X-CSRF-Token: {{csrf_token}}
+  Cookie: {{session_cookie}}
+}
+
+docs {
+  ## Get Workouts with Date Range Filtering
+  
+  Retrieve workouts within a specific date range for calendar display.
+  
+  ### Query Parameters
+  - `start_date`: Start of date range (ISO format: YYYY-MM-DD)
+  - `end_date`: End of date range (ISO format: YYYY-MM-DD)
+  - Can provide both, just start_date, or just end_date
+  
+  ### Response
+  Returns workouts with `scheduled_time` included for display on calendar.
+  
+  ### Use Cases
+  - Calendar view: Get all workouts for current month
+  - Week view: Get workouts for 7-day period
+  - Filter past vs upcoming workouts
+}
+
+tests {
+  test("Status is 200", function() {
+    expect(res.status).to.equal(200);
+  });
+  
+  test("Response has data array", function() {
+    expect(res.body).to.have.property('data');
+    expect(res.body.data).to.be.an('array');
+  });
+  
+  test("Workouts have scheduled_time field", function() {
+    if (res.body.data.length > 0) {
+      expect(res.body.data[0]).to.have.property('scheduled_time');
+    }
+  });
+  
+  test("Workouts include exercises", function() {
+    if (res.body.data.length > 0) {
+      expect(res.body.data[0]).to.have.property('workout_exercises');
+    }
+  });
+}
+

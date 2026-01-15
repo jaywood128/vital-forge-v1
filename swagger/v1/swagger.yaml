@@ -3,26 +3,175 @@ openapi: 3.0.1
 info:
   title: VitalForge API V1
   version: v1
-  description: VitalForge Fitness Tracking Application API - Authentication and User Management
+  description: VitalForge Fitness Tracking Application API - Authentication and User
+    Management
   contact:
     name: VitalForge Team
     email: support@vitalforge.com
-servers:
-- url: http://localhost:3000
-  description: Development server
-- url: https://api.vitalforge.com
-  description: Production server
 paths:
+  "/api/v1/csrf":
+    get:
+      summary: Get CSRF Token
+      tags:
+      - API Authentication
+      description: Retrieves a CSRF token for subsequent authenticated requests. The
+        token is also set as a cookie.
+      responses:
+        '200':
+          description: CSRF token retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  csrfToken:
+                    type: string
+                    example: abc123xyz...
+                required:
+                - csrfToken
+  "/api/v1/login":
+    post:
+      summary: Login (JSON API)
+      tags:
+      - API Authentication
+      description: Authenticates a user via JSON API and creates a session. Returns
+        user data on success.
+      parameters: []
+      responses:
+        '200':
+          description: login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          email:
+                            type: string
+                            example: john.doe@example.com
+                          first_name:
+                            type: string
+                            example: John
+                          last_name:
+                            type: string
+                            example: Doe
+        '401':
+          description: invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid email or password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                      format: email
+                      example: john.doe@example.com
+                    password:
+                      type: string
+                      format: password
+                      example: Password123!
+                  required:
+                  - email
+                  - password
+              required:
+              - user
+  "/api/v1/current_user":
+    get:
+      summary: Get Current User
+      tags:
+      - API Authentication
+      description: Returns the currently authenticated user's information
+      responses:
+        '200':
+          description: user found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          email:
+                            type: string
+                          first_name:
+                            type: string
+                          last_name:
+                            type: string
+        '401':
+          description: not authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Not signed in
+  "/api/v1/logout":
+    delete:
+      summary: Logout (JSON API)
+      tags:
+      - API Authentication
+      description: Logs out the current user and destroys the session
+      responses:
+        '204':
+          description: logout successful
   "/login":
     post:
       summary: User login
       tags:
       - Authentication
-      description: Authenticates a user and creates a session
-      operationId: loginUser
+      description: Authenticates a user and creates a session. Returns HTML redirect
+        on success or renders login form with errors.
+      parameters: []
+      responses:
+        '302':
+          description: successful login - redirects to dashboard
+        '422':
+          description: account locked
       requestBody:
-        required: true
         content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+                password:
+                  type: string
+                  format: password
+                  example: Password123!
+              required:
+              - email
+              - password
           application/x-www-form-urlencoded:
             schema:
               type: object
@@ -38,149 +187,65 @@ paths:
               required:
               - email
               - password
-      responses:
-        '302':
-          description: Successful login - redirects to dashboard
-          headers:
-            Location:
-              schema:
-                type: string
-                example: "/dashboard"
-        '422':
-          description: Invalid credentials or account locked
-          content:
-            text/html:
-              schema:
-                type: string
   "/logout":
     delete:
       summary: User logout
       tags:
       - Authentication
-      description: Logs out the current user and destroys their session
-      operationId: logoutUser
+      description: Logs out the current user and destroys their session. Requires
+        active session.
       responses:
         '302':
-          description: Successful logout - redirects to root
-          headers:
-            Location:
-              schema:
-                type: string
-                example: "/"
-  "/api/v1/session":
-    post:
-      summary: JSON login (API)
-      tags:
-      - Authentication
-      description: Authenticates a user via JSON and creates a session (sets session cookie)
-      operationId: apiLogin
-      security:
-      - csrf_token: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                user:
-                  type: object
-                  properties:
-                    email:
-                      type: string
-                      format: email
-                      example: test@example.com
-                    password:
-                      type: string
-                      format: password
-                      example: Password123!
-                  required:
-                  - email
-                  - password
-      responses:
-        '200':
-          description: Signed in successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      user:
-                        $ref: '#/components/schemas/User'
-        '401':
-          description: Invalid email or password
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: Invalid email or password
-    delete:
-      summary: JSON logout (API)
-      tags:
-      - Authentication
-      description: Logs out the current user (destroys session)
-      operationId: apiLogout
-      security:
-      - csrf_token: []
-      - session_cookie: []
-      responses:
-        '204':
-          description: Logged out successfully (no content)
-  "/api/v1/current_user":
-    get:
-      summary: Get current user (API)
-      tags:
-      - Authentication
-      description: Returns the authenticated user's profile
-      operationId: apiCurrentUser
-      security:
-      - session_cookie: []
-      responses:
-        '200':
-          description: Current user
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      user:
-                        $ref: '#/components/schemas/User'
-        '401':
-          description: Not authenticated
-  "/signup":
-    get:
-      summary: Show registration form
-      tags:
-      - Users
-      description: Displays the user registration form
-      operationId: showRegistrationForm
-      responses:
-        '200':
-          description: Registration form rendered
-          content:
-            text/html:
-              schema:
-                type: string
+          description: logout without session - still redirects
   "/users":
     post:
       summary: User registration
       tags:
       - Users
       - Authentication
-      description: Creates a new user account and automatically logs them in
-      operationId: createUser
+      description: Creates a new user account. Automatically logs in the user and
+        creates a session on success.
+      parameters: []
+      responses:
+        '302':
+          description: user created successfully - redirects to dashboard
+        '422':
+          description: validation failed - invalid email format
       requestBody:
-        required: true
         content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: john.doe@example.com
+                  description: User email address (must be unique)
+                password:
+                  type: string
+                  format: password
+                  example: SecurePass123!
+                  description: User password (minimum 8 characters)
+                password_confirmation:
+                  type: string
+                  format: password
+                  example: SecurePass123!
+                  description: Password confirmation (must match password)
+                first_name:
+                  type: string
+                  example: John
+                  description: User first name
+                last_name:
+                  type: string
+                  example: Doe
+                  description: User last name
+              required:
+              - email
+              - password
+              - password_confirmation
+              - first_name
+              - last_name
           application/x-www-form-urlencoded:
             schema:
               type: object
@@ -214,44 +279,10 @@ paths:
               - password_confirmation
               - first_name
               - last_name
-      responses:
-        '302':
-          description: User created successfully - redirects to dashboard
-          headers:
-            Location:
-              schema:
-                type: string
-                example: "/dashboard"
-        '422':
-          description: Validation failed
-          content:
-            text/html:
-              schema:
-                type: string
-                description: Renders signup form with error messages
-  "/dashboard":
-    get:
-      summary: User dashboard
-      tags:
-      - Dashboard
-      description: Protected dashboard page (requires authentication)
-      operationId: showDashboard
-      security:
-      - session_cookie: []
-      responses:
-        '200':
-          description: Dashboard rendered successfully
-          content:
-            text/html:
-              schema:
-                type: string
-        '302':
-          description: Not authenticated - redirects to login
-          headers:
-            Location:
-              schema:
-                type: string
-                example: "/login"
+servers:
+- url: http://localhost:3000
+  description: Development server
+- url: https://api.vitalforge.com
 components:
   securitySchemes:
     csrf_token:
@@ -293,11 +324,76 @@ components:
       required:
       - id
       - email
+    UserRegistration:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        password:
+          type: string
+          format: password
+          example: SecurePass123!
+        password_confirmation:
+          type: string
+          format: password
+          example: SecurePass123!
+        first_name:
+          type: string
+          example: John
+        last_name:
+          type: string
+          example: Doe
+      required:
+      - email
+      - password
+      - password_confirmation
+      - first_name
+      - last_name
+    LoginCredentials:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+          example: john.doe@example.com
+        password:
+          type: string
+          format: password
+          example: SecurePass123!
+      required:
+      - email
+      - password
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Invalid email or password
+    ValidationErrors:
+      type: object
+      properties:
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            email:
+            - can't be blank
+            - is invalid
+            password:
+            - is too short (minimum is 8 characters)
+    SuccessMessage:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Successfully logged out
 tags:
 - name: Authentication
   description: User authentication operations (login, logout, signup)
 - name: Users
   description: User account management operations
-- name: Dashboard
-  description: Protected user dashboard
-

@@ -1,0 +1,30 @@
+meta {
+  name: Edit Set
+  type: http
+  seq: 1
+}
+
+patch {
+  url: {{baseUrl}}/api/v1/exercise_sets/:id
+  body: json
+  auth: inherit
+}
+
+params:path {
+  id: 156
+}
+
+body:json {
+  {
+    "exercise_set": {
+      "reps": 12,
+      "weight": 135,
+      "weight_unit": "lbs"
+    }
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}
