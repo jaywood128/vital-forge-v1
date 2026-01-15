@@ -18,10 +18,10 @@ data "aws_availability_zones" "available" {
   state = "available"
 }
 
-# Reference existing RDS instance
-data "aws_db_instance" "vitalforge" {
-  db_instance_identifier = var.rds_identifier
-}
+# DEPRECATED - Legacy RDS reference (no longer used with Lightsail)
+# data "aws_db_instance" "vitalforge" {
+#   db_instance_identifier = var.rds_identifier
+# }
 
 # Reference existing Route53 hosted zone
 data "aws_route53_zone" "main" {

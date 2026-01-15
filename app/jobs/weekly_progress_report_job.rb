@@ -19,8 +19,9 @@ class WeeklyProgressReportJob
         .distinct
         .find_each do |user|
       active_users += 1
-      SendWeeklyProgressEmailJob.perform_async(user.id)
-      queued_emails += 1
+      # TEMPORARILY DISABLED - No mail server configured for Lightsail deployment
+      # SendWeeklyProgressEmailJob.perform_async(user.id)
+      # queued_emails += 1
       GenerateWeeklyFeedbackJob.perform_async(user.id)
       queued_ai_feedback += 1
     end
