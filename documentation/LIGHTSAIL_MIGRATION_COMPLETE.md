@@ -15,7 +15,7 @@ Successfully migrated VitalForge from AWS Fargate to AWS Lightsail architecture.
 - Name: `vitalforge-v1-container`
 - Size: Nano (512MB RAM, 0.25 vCPU)
 - Cost: $7/month
-- URL: https://vitalforge-v1-container.us-east-1.cs.amazonlightsail.com
+- URL: https://vitalforge-v1-container.w17nat6jerjqp.us-east-1.cs.amazonlightsail.com
 
 ✅ **Lightsail PostgreSQL Database**
 - Name: `vitalforge-v1-db`
@@ -187,6 +187,53 @@ The following environment variables are configured in the deployment:
 ✅ **SECRET_KEY_BASE** - From terraform.tfvars  
 ⚠️ **OPENAI_API_KEY** - Optional (for AI feedback)  
 ⚠️ **HONEYBADGER_API_KEY** - Optional (for error tracking)
+
+---
+
+## Domains & DNS (Route 53 / Lightsail / Vercel)
+
+### Root domain (registered)
+- **Apex domain**: `forge-fitness-journal.app`
+- **Authoritative DNS**: Route 53 hosted zone for `forge-fitness-journal.app`
+
+> Note: subdomains like `api-staging.forge-fitness-journal.app` are not “registered” separately. Only the apex domain is registered; subdomains are created via DNS records.
+
+### Current / intended subdomains
+
+#### API (Lightsail Container Service)
+- **Hostname**: `api-staging.forge-fitness-journal.app`
+- **Purpose**: Rails API (Lightsail Container Service public endpoint)
+- **DNS (Route 53)**:
+  - **Type**: CNAME
+  - **Name**: `api-staging`
+  - **Value**: `vitalforge-v1-container.w17nat6jerjqp.us-east-1.cs.amazonlightsail.com` *(hostname only — no `http://`, no path)*
+- **HTTPS/TLS**:
+  - Route 53 CNAME is not enough by itself.
+  - The domain must be attached in **Lightsail → Container services → `vitalforge-v1-container` → Networking / Custom domains**.
+  - Lightsail will provide DNS validation records (typically CNAMEs) to add to Route 53.
+  - If not attached, requests may return: `404 No Such Service`.
+
+#### UI (Vercel) — planned
+- **Hostname**: `staging-ui.forge-fitness-journal.app`
+- **Purpose**: Next.js UI hosted on Vercel
+- **DNS (Route 53)** (typical Vercel setup):
+  - **Type**: CNAME
+  - **Name**: `staging-ui`
+  - **Value**: `cname.vercel-dns.com` *(or whatever Vercel instructs)*
+- **HTTPS/TLS**:
+  - Managed by Vercel after DNS verification.
+
+### Naming convention (future environments — unlikely)
+If another environment is ever added, keep the same pattern:
+- **Prod API**: `api.forge-fitness-journal.app`
+- **Prod UI**: `forge-fitness-journal.app` (or `www.forge-fitness-journal.app`)
+- **Staging API**: `api-staging.forge-fitness-journal.app`
+- **Staging UI**: `staging-ui.forge-fitness-journal.app`
+
+### Quick troubleshooting notes
+- **Don’t use URLs in DNS records**: Route 53 record values must not include `http://` / `https://` or any `/path`.
+- **Ping is not a health check**: many AWS endpoints don’t respond to ICMP; use `curl`.
+- **API health check**: `GET /api/v1/health` should return `200` with body `ok`.
 
 ---
 
