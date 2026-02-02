@@ -4,8 +4,8 @@ require "rails_helper"
 
 RSpec.describe "API V1 Authentication", type: :request do
   def csrf_token
-    # Trigger after_action to set CSRF-TOKEN cookie
-    get api_v1_current_user_path, as: :json
+    # Seed CSRF-TOKEN cookie for non-GET requests (logout, etc.)
+    get api_v1_csrf_path, as: :json
     cookies["CSRF-TOKEN"]
   end
 
@@ -22,24 +22,18 @@ RSpec.describe "API V1 Authentication", type: :request do
 
   describe "POST /api/v1/login" do
     it "signs in with valid credentials and returns user JSON" do
-      skip "Rails 8.0.3 has a session[:key] bug in request specs. Manually tested in Postman - works correctly."
-      token = csrf_token
+      # Login does not require CSRF in our API (SessionsController skips verify_authenticity_token on create),
+      # but we keep the flow simple by just posting credentials.
       post api_v1_login_path,
         params: { user: { email: user.email, password: "Password123!" } },
-        headers: { "X-CSRF-Token" => token },
         as: :json
 
       expect(response).to have_http_status(:ok)
       body = JSON.parse(response.body)
       expect(body.dig("data", "user", "email")).to eq(user.email)
 
-      # ✅ CRITICAL: Extract the session cookie from login response
-      session_cookie = response.headers["Set-Cookie"]
-
-      # ✅ Pass the session cookie to the next request
-      get api_v1_current_user_path,
-        headers: { "Cookie" => session_cookie },
-        as: :json
+      # rack-test automatically persists the session cookie; do NOT pass Set-Cookie back as Cookie.
+      get api_v1_current_user_path, as: :json
 
       expect(response).to have_http_status(:ok)
       current = JSON.parse(response.body)
@@ -50,10 +44,8 @@ RSpec.describe "API V1 Authentication", type: :request do
   describe "DELETE /api/v1/logout" do
     # NOTE: This test has a known issue with rack-test not properly clearing session cookies
     # In production, the logout works correctly. This is a test framework limitation.
-    xit "signs out when signed in" do
-      # Initial request to get CSRF token
-      get api_v1_current_user_path, as: :json
-      token = cookies["CSRF-TOKEN"]
+    it "signs out when signed in" do
+      token = csrf_token
 
       # Sign in
       post api_v1_login_path,
@@ -70,10 +62,6 @@ RSpec.describe "API V1 Authentication", type: :request do
         headers: { "X-CSRF-Token" => token },
         as: :json
       expect(response).to have_http_status(:no_content)
-
-      # Force cookie jar to respect the cleared session
-      # (rack-test sometimes holds onto old cookies)
-      follow_redirect! if response.redirect?
 
       # Current user should now be unauthorized
       get api_v1_current_user_path, as: :json
