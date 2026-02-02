@@ -17,6 +17,33 @@ resource "aws_ecr_repository" "app" {
   }
 }
 
+# Allow Lightsail Container Service to pull from this private ECR repo.
+# Without this repository policy, deployments can fail before the container starts (no app logs).
+data "aws_iam_policy_document" "ecr_lightsail_pull" {
+  statement {
+    sid    = "AllowLightsailContainerServicePull"
+    effect = "Allow"
+
+    principals {
+      type        = "AWS"
+      identifiers = [
+        aws_lightsail_container_service.app.private_registry_access[0].ecr_image_puller_role[0].principal_arn
+      ]
+    }
+
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:BatchGetImage",
+      "ecr:GetDownloadUrlForLayer"
+    ]
+  }
+}
+
+resource "aws_ecr_repository_policy" "lightsail_pull" {
+  repository = aws_ecr_repository.app.name
+  policy     = data.aws_iam_policy_document.ecr_lightsail_pull.json
+}
+
 # Lifecycle policy to keep only recent images
 resource "aws_ecr_lifecycle_policy" "app" {
   repository = aws_ecr_repository.app.name

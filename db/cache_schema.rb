@@ -1,14 +1,177 @@
-# frozen_string_literal: true
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 1) do
-  create_table "solid_cache_entries", force: :cascade do |t|
-    t.binary "key", limit: 1024, null: false
-    t.binary "value", limit: 536870912, null: false
+ActiveRecord::Schema[8.0].define(version: 2026_01_14_004735) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
+  create_table "exercise_sets", force: :cascade do |t|
+    t.bigint "workout_exercise_id", null: false
+    t.integer "set_number", null: false
+    t.integer "reps", null: false
+    t.decimal "weight", precision: 6, scale: 2
+    t.string "weight_unit", default: "lbs"
+    t.integer "rest_after_seconds"
+    t.integer "rpe"
+    t.boolean "to_failure", default: false
+    t.text "notes"
+    t.boolean "completed", default: false
     t.datetime "created_at", null: false
-    t.integer "key_hash", limit: 8, null: false
-    t.integer "byte_size", limit: 4, null: false
-    t.index ["byte_size"], name: "index_solid_cache_entries_on_byte_size"
-    t.index ["key_hash", "byte_size"], name: "index_solid_cache_entries_on_key_hash_and_byte_size"
-    t.index ["key_hash"], name: "index_solid_cache_entries_on_key_hash", unique: true
+    t.datetime "updated_at", null: false
+    t.index ["workout_exercise_id", "set_number"], name: "index_exercise_sets_on_workout_exercise_and_number"
+    t.index ["workout_exercise_id", "set_number"], name: "unique_set_number_per_exercise", unique: true
+    t.index ["workout_exercise_id"], name: "index_exercise_sets_on_workout_exercise_id"
   end
+
+  create_table "exercises", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.string "exercise_type", null: false
+    t.string "equipment", null: false
+    t.string "muscle_group"
+    t.string "difficulty_level"
+    t.text "instructions"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["equipment"], name: "index_exercises_on_equipment"
+    t.index ["exercise_type"], name: "index_exercises_on_exercise_type"
+    t.index ["muscle_group"], name: "index_exercises_on_muscle_group"
+    t.index ["name"], name: "index_exercises_on_name", unique: true
+  end
+
+  create_table "user_preferences", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "primary_goal"
+    t.integer "training_days_per_week"
+    t.integer "preferred_workout_duration"
+    t.string "experience_level"
+    t.boolean "onboarding_completed", default: false, null: false
+    t.datetime "onboarding_completed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_user_preferences_on_user_id", unique: true
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "email", null: false
+    t.string "first_name"
+    t.string "last_name"
+    t.integer "failed_login_attempts", default: 0, null: false
+    t.datetime "locked_at"
+    t.datetime "last_login_at"
+    t.string "password_reset_token"
+    t.datetime "password_reset_sent_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "encrypted_password", default: "", null: false
+    t.datetime "remember_created_at"
+    t.index ["email"], name: "index_users_on_email", unique: true
+    t.index ["password_reset_token"], name: "index_users_on_password_reset_token", unique: true
+  end
+
+  create_table "weekly_feedbacks", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.date "week_start", null: false
+    t.text "feedback_text", null: false
+    t.jsonb "stats_snapshot"
+    t.datetime "generated_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.boolean "email_sent", default: false, null: false
+    t.index ["user_id", "week_start", "email_sent"], name: "index_weekly_feedbacks_on_user_week_email"
+    t.index ["user_id", "week_start"], name: "index_weekly_feedbacks_on_user_id_and_week_start", unique: true
+    t.index ["user_id"], name: "index_weekly_feedbacks_on_user_id"
+    t.index ["week_start"], name: "index_weekly_feedbacks_on_week_start"
+  end
+
+  create_table "workout_exercises", force: :cascade do |t|
+    t.bigint "workout_id", null: false
+    t.bigint "exercise_id", null: false
+    t.integer "order_position", default: 0, null: false
+    t.text "notes"
+    t.integer "rest_between_sets"
+    t.boolean "completed", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["exercise_id"], name: "index_workout_exercises_on_exercise_id"
+    t.index ["workout_id", "order_position"], name: "index_workout_exercises_on_workout_and_order"
+    t.index ["workout_id"], name: "index_workout_exercises_on_workout_id"
+  end
+
+  create_table "workout_template_exercises", force: :cascade do |t|
+    t.bigint "workout_template_id", null: false
+    t.bigint "exercise_id", null: false
+    t.integer "order_position", default: 0, null: false
+    t.integer "recommended_sets", null: false
+    t.string "recommended_reps", null: false
+    t.integer "rest_seconds"
+    t.text "notes"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["exercise_id"], name: "index_workout_template_exercises_on_exercise_id"
+    t.index ["workout_template_id", "order_position"], name: "index_template_exercises_on_template_and_order"
+    t.index ["workout_template_id"], name: "index_workout_template_exercises_on_workout_template_id"
+  end
+
+  create_table "workout_templates", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.string "goal_type", null: false
+    t.string "difficulty_level"
+    t.integer "days_per_week", null: false
+    t.integer "estimated_duration_minutes"
+    t.integer "total_exercises"
+    t.string "source"
+    t.boolean "is_active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["days_per_week"], name: "index_workout_templates_on_days_per_week"
+    t.index ["difficulty_level"], name: "index_workout_templates_on_difficulty_level"
+    t.index ["goal_type"], name: "index_workout_templates_on_goal_type"
+    t.index ["is_active"], name: "index_workout_templates_on_is_active"
+  end
+
+  create_table "workouts", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.datetime "workout_date", null: false
+    t.integer "duration_minutes"
+    t.string "workout_type"
+    t.integer "calories_burned"
+    t.text "notes"
+    t.integer "intensity_level"
+    t.boolean "completed", default: false, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "workout_template_id"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.time "scheduled_time", comment: "Optional time of day when workout is scheduled"
+    t.index ["completed"], name: "index_workouts_on_completed"
+    t.index ["user_id", "started_at", "completed_at"], name: "index_workouts_on_user_active"
+    t.index ["user_id", "workout_date"], name: "index_workouts_on_user_and_date"
+    t.index ["user_id"], name: "index_workouts_on_user_id"
+    t.index ["workout_template_id"], name: "index_workouts_on_workout_template_id"
+    t.index ["workout_type"], name: "index_workouts_on_workout_type"
+  end
+
+  add_foreign_key "exercise_sets", "workout_exercises", on_delete: :cascade
+  add_foreign_key "user_preferences", "users", on_delete: :cascade
+  add_foreign_key "weekly_feedbacks", "users"
+  add_foreign_key "workout_exercises", "exercises"
+  add_foreign_key "workout_exercises", "workouts", on_delete: :cascade
+  add_foreign_key "workout_template_exercises", "exercises"
+  add_foreign_key "workout_template_exercises", "workout_templates", on_delete: :cascade
+  add_foreign_key "workouts", "users", on_delete: :cascade
+  add_foreign_key "workouts", "workout_templates"
 end

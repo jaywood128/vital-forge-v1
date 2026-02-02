@@ -24,8 +24,18 @@ default: &default
   password: <%= ENV["DATABASE_PASSWORD"] %>
 
 development:
-  <<: *default
-  database: vital_forge_v1_development
+  primary:
+    <<: *default
+    database: vital_forge_v1_development
+  cache:
+    <<: *default
+    database: vital_forge_v1_development_cache
+  queue:
+    <<: *default
+    database: vital_forge_v1_development_queue
+  cable:
+    <<: *default
+    database: vital_forge_v1_development_cable
 
   # The specified database role being used to connect to PostgreSQL.
   # To create additional roles in PostgreSQL see `$ createuser --help`.
@@ -58,8 +68,18 @@ development:
 # re-generated from your development database when you run "rake".
 # Do not set this db to the same as development or production.
 test:
-  <<: *default
-  database: vital_forge_v1_test
+  primary:
+    <<: *default
+    database: vital_forge_v1_test
+  cache:
+    <<: *default
+    database: vital_forge_v1_test_cache
+  queue:
+    <<: *default
+    database: vital_forge_v1_test_queue
+  cable:
+    <<: *default
+    database: vital_forge_v1_test_cable
 
 # As with config/credentials.yml, you never want to store sensitive information,
 # like your database password, in your source code. If your source code is
@@ -82,11 +102,18 @@ test:
 # for a full overview on how database connection configuration can be specified.
 #
 production:
-  <<: *default
-  url: <%= ENV["DATABASE_URL"] %>
-
-  # Cache database - uses same connection as production for now
-  # TODO: Configure separate cache database for better performance
-  cache:
+  primary:
     <<: *default
     url: <%= ENV["DATABASE_URL"] %>
+  # NOTE: Rails 8 + solid_cache/solid_queue/solid_cable expect these named
+  # configurations to exist when eager loading, even if production uses
+  # memory_store/sidekiq instead. For now we default them to DATABASE_URL.
+  cache:
+    <<: *default
+    url: <%= ENV.fetch("CACHE_DATABASE_URL", ENV["DATABASE_URL"]) %>
+  queue:
+    <<: *default
+    url: <%= ENV.fetch("QUEUE_DATABASE_URL", ENV["DATABASE_URL"]) %>
+  cable:
+    <<: *default
+    url: <%= ENV.fetch("CABLE_DATABASE_URL", ENV["DATABASE_URL"]) %>

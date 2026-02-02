@@ -20,7 +20,6 @@ Rails.application.routes.draw do
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
   # API-only application - all routes under /api/v1
-  # API-only application - all routes under /api/v1
   namespace :api do
     namespace :v1 do
       # Health check endpoint for ALB
