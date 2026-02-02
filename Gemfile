@@ -97,6 +97,6 @@ group :test do
   gem "simplecov-json", require: false
 end
 
-ruby "3.2.6"
+ruby ">= 3.2.6"
 
 gem "honeybadger", "~> 6.2"

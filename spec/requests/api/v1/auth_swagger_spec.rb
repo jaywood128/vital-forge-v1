@@ -12,8 +12,24 @@ RSpec.describe "API V1 Authentication", type: :request do
     )
   end
 
+  path "/api/v1/health" do
+    get "Health check" do
+      operationId "getHealth"
+      tags "Health"
+      produces "text/plain"
+      description "Returns 200 OK if the API is up. Used by load balancers and uptime monitors."
+
+      response "200", "API is healthy" do
+        run_test! do |response|
+          expect(response.body).to eq("ok")
+        end
+      end
+    end
+  end
+
   path "/api/v1/csrf" do
     get "Get CSRF Token" do
+      operationId "getCsrfToken"
       tags "API Authentication"
       produces "application/json"
       description "Retrieves a CSRF token for subsequent authenticated requests. The token is also set as a cookie."
@@ -32,6 +48,7 @@ RSpec.describe "API V1 Authentication", type: :request do
 
   path "/api/v1/login" do
     post "Login (JSON API)" do
+      operationId "login"
       tags "API Authentication"
       consumes "application/json"
       produces "application/json"
@@ -110,6 +127,7 @@ RSpec.describe "API V1 Authentication", type: :request do
 
   path "/api/v1/current_user" do
     get "Get Current User" do
+      operationId "getCurrentUser"
       tags "API Authentication"
       produces "application/json"
       description "Returns the currently authenticated user's information"
@@ -163,6 +181,7 @@ RSpec.describe "API V1 Authentication", type: :request do
 
   path "/api/v1/logout" do
     delete "Logout (JSON API)" do
+      operationId "logout"
       tags "API Authentication"
       produces "application/json"
       description "Logs out the current user and destroys the session"
@@ -173,6 +192,99 @@ RSpec.describe "API V1 Authentication", type: :request do
 
         before do
           skip "Rswag has limitations with cookie-based sessions. Use mobile endpoints for testing."
+        end
+
+        run_test!
+      end
+    end
+  end
+
+  path "/api/v1/signup" do
+    post "Register (signup)" do
+      operationId "signup"
+      tags "Users"
+      consumes "application/json"
+      produces "application/json"
+      description "Creates a new user account. Automatically logs in the user and sets session."
+
+      parameter name: :registration, in: :body, schema: {
+        type: :object,
+        properties: {
+          user: {
+            type: :object,
+            properties: {
+              email: { type: :string, format: :email, example: "new.user@example.com" },
+              password: { type: :string, format: :password, example: "SecurePass123!" },
+              password_confirmation: { type: :string, format: :password, example: "SecurePass123!" },
+              first_name: { type: :string, example: "New" },
+              last_name: { type: :string, example: "User" }
+            },
+            required: %w[email password password_confirmation first_name last_name]
+          }
+        },
+        required: [ "user" ]
+      }
+
+      response "201", "user created" do
+        schema type: :object,
+          properties: {
+            data: {
+              type: :object,
+              properties: {
+                user: {
+                  type: :object,
+                  properties: {
+                    id: { type: :integer },
+                    email: { type: :string },
+                    first_name: { type: :string },
+                    last_name: { type: :string }
+                  }
+                },
+                message: { type: :string }
+              }
+            }
+          }
+
+        let(:registration) do
+          {
+            user: {
+              email: "signup.test@example.com",
+              password: "Password123!",
+              password_confirmation: "Password123!",
+              first_name: "Signup",
+              last_name: "Test"
+            }
+          }
+        end
+
+        run_test! do |response|
+          data = JSON.parse(response.body)
+          expect(data["data"]["user"]["email"]).to eq("signup.test@example.com")
+        end
+      end
+
+      response "422", "validation error" do
+        schema type: :object,
+          properties: {
+            errors: {
+              type: :object,
+              additionalProperties: {
+                type: :array,
+                items: { type: :string }
+              }
+            }
+          }
+
+        let(:registration) do
+          {
+            user: {
+              email: "invalid",
+              password: "short",
+              password_confirmation: "mismatch",
+              first_name: "",
+              last_name: ""
+            }
+          }
         end
 
         run_test!

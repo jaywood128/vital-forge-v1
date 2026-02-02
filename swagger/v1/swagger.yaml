@@ -3,15 +3,27 @@ openapi: 3.0.1
 info:
   title: VitalForge API V1
   version: v1
-  description: VitalForge Fitness Tracking Application API - Authentication and User
-    Management
+  description: VitalForge Fitness Tracking Application API - Authentication, Workouts,
+    Templates, Exercise Sets, User Preferences, and Weekly AI Feedback
   contact:
     name: VitalForge Team
     email: support@vitalforge.com
 paths:
+  "/api/v1/health":
+    get:
+      summary: Health check
+      operationId: getHealth
+      tags:
+      - Health
+      description: Returns 200 OK if the API is up. Used by load balancers and uptime
+        monitors.
+      responses:
+        '200':
+          description: API is healthy
   "/api/v1/csrf":
     get:
       summary: Get CSRF Token
+      operationId: getCsrfToken
       tags:
       - API Authentication
       description: Retrieves a CSRF token for subsequent authenticated requests. The
@@ -32,6 +44,7 @@ paths:
   "/api/v1/login":
     post:
       summary: Login (JSON API)
+      operationId: login
       tags:
       - API Authentication
       description: Authenticates a user via JSON API and creates a session. Returns
@@ -98,6 +111,7 @@ paths:
   "/api/v1/current_user":
     get:
       summary: Get Current User
+      operationId: getCurrentUser
       tags:
       - API Authentication
       description: Returns the currently authenticated user's information
@@ -136,165 +150,864 @@ paths:
   "/api/v1/logout":
     delete:
       summary: Logout (JSON API)
+      operationId: logout
       tags:
       - API Authentication
       description: Logs out the current user and destroys the session
       responses:
         '204':
           description: logout successful
-  "/login":
+  "/api/v1/signup":
     post:
-      summary: User login
-      tags:
-      - Authentication
-      description: Authenticates a user and creates a session. Returns HTML redirect
-        on success or renders login form with errors.
-      parameters: []
-      responses:
-        '302':
-          description: successful login - redirects to dashboard
-        '422':
-          description: account locked
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  format: email
-                  example: john.doe@example.com
-                password:
-                  type: string
-                  format: password
-                  example: Password123!
-              required:
-              - email
-              - password
-          application/x-www-form-urlencoded:
-            schema:
-              type: object
-              properties:
-                email:
-                  type: string
-                  format: email
-                  example: john.doe@example.com
-                password:
-                  type: string
-                  format: password
-                  example: Password123!
-              required:
-              - email
-              - password
-  "/logout":
-    delete:
-      summary: User logout
-      tags:
-      - Authentication
-      description: Logs out the current user and destroys their session. Requires
-        active session.
-      responses:
-        '302':
-          description: logout without session - still redirects
-  "/users":
-    post:
-      summary: User registration
+      summary: Register (signup)
+      operationId: signup
       tags:
       - Users
-      - Authentication
       description: Creates a new user account. Automatically logs in the user and
-        creates a session on success.
+        sets session.
       parameters: []
       responses:
-        '302':
-          description: user created successfully - redirects to dashboard
+        '201':
+          description: user created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                          email:
+                            type: string
+                          first_name:
+                            type: string
+                          last_name:
+                            type: string
+                      message:
+                        type: string
         '422':
-          description: validation failed - invalid email format
+          description: validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                email:
-                  type: string
-                  format: email
-                  example: john.doe@example.com
-                  description: User email address (must be unique)
-                password:
-                  type: string
-                  format: password
-                  example: SecurePass123!
-                  description: User password (minimum 8 characters)
-                password_confirmation:
-                  type: string
-                  format: password
-                  example: SecurePass123!
-                  description: Password confirmation (must match password)
-                first_name:
-                  type: string
-                  example: John
-                  description: User first name
-                last_name:
-                  type: string
-                  example: Doe
-                  description: User last name
+                user:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                      format: email
+                      example: new.user@example.com
+                    password:
+                      type: string
+                      format: password
+                      example: SecurePass123!
+                    password_confirmation:
+                      type: string
+                      format: password
+                      example: SecurePass123!
+                    first_name:
+                      type: string
+                      example: New
+                    last_name:
+                      type: string
+                      example: User
+                  required:
+                  - email
+                  - password
+                  - password_confirmation
+                  - first_name
+                  - last_name
               required:
-              - email
-              - password
-              - password_confirmation
-              - first_name
-              - last_name
-          application/x-www-form-urlencoded:
+              - user
+  "/api/v1/exercise_sets/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: Exercise set ID
+      required: true
+      schema:
+        type: integer
+    patch:
+      summary: Update exercise set
+      operationId: updateExerciseSet
+      tags:
+      - Exercise Sets
+      security:
+      - bearer_auth: []
+      description: Updates an exercise set (reps, weight, completed, notes, etc.).
+        Set must belong to the current user's workout.
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: 'JWT token: Bearer <token>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: exercise set updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  exercise_set:
+                    "$ref": "#/components/schemas/ExerciseSet"
+        '404':
+          description: exercise set not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '401':
+          description: unauthorized
+      requestBody:
+        content:
+          application/json:
             schema:
               type: object
               properties:
-                email:
-                  type: string
-                  format: email
-                  example: john.doe@example.com
-                  description: User email address (must be unique)
-                password:
-                  type: string
-                  format: password
-                  example: SecurePass123!
-                  description: User password (minimum 8 characters)
-                password_confirmation:
-                  type: string
-                  format: password
-                  example: SecurePass123!
-                  description: Password confirmation (must match password)
-                first_name:
-                  type: string
-                  example: John
-                  description: User first name
-                last_name:
-                  type: string
-                  example: Doe
-                  description: User last name
+                exercise_set:
+                  type: object
+                  properties:
+                    reps:
+                      type: integer
+                    weight:
+                      type: number
+                    weight_unit:
+                      type: string
+                    rest_after_seconds:
+                      type: integer
+                    rpe:
+                      type: integer
+                    to_failure:
+                      type: boolean
+                    notes:
+                      type: string
+                    completed:
+                      type: boolean
               required:
-              - email
-              - password
-              - password_confirmation
-              - first_name
-              - last_name
+              - exercise_set
+  "/api/v1/mobile/login":
+    post:
+      summary: Mobile Login (JWT)
+      operationId: mobileLogin
+      tags:
+      - Mobile Authentication
+      description: Authenticates a mobile user and returns a JWT token. Use this token
+        in the Authorization header for subsequent requests.
+      parameters: []
+      responses:
+        '200':
+          description: login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          email:
+                            type: string
+                            example: mobile.user@example.com
+                          first_name:
+                            type: string
+                            example: Mobile
+                          last_name:
+                            type: string
+                            example: User
+                          full_name:
+                            type: string
+                            example: Mobile User
+                      token:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImV4cCI6MTcwMDAwMDAwMCwiaWF0IjoxNjk5OTEzNjAwfQ.abcdef123456
+                        description: JWT token - use in Authorization header as 'Bearer
+                          <token>'
+                      expires_at:
+                        type: string
+                        format: date-time
+                        example: '2024-11-24T12:00:00Z'
+                        description: Token expiration time (24 hours from login)
+        '401':
+          description: user not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid email or password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                      format: email
+                      example: mobile.user@example.com
+                    password:
+                      type: string
+                      format: password
+                      example: Password123!
+                  required:
+                  - email
+                  - password
+              required:
+              - user
+  "/api/v1/mobile/current_user":
+    get:
+      summary: Get Current Mobile User
+      operationId: getCurrentMobileUser
+      tags:
+      - Mobile Authentication
+      security:
+      - bearer_auth: []
+      description: Returns the currently authenticated user based on JWT token. Include
+        the token in the Authorization header.
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: 'JWT token in format: Bearer <token>'
+        example: Bearer eyJhbGciOiJIUzI1NiJ9...
+        schema:
+          type: string
+      responses:
+        '200':
+          description: current user retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          email:
+                            type: string
+                            example: mobile.user@example.com
+                          first_name:
+                            type: string
+                            example: Mobile
+                          last_name:
+                            type: string
+                            example: User
+                          full_name:
+                            type: string
+                            example: Mobile User
+                          created_at:
+                            type: string
+                            format: date-time
+                          last_login_at:
+                            type: string
+                            format: date-time
+                            nullable: true
+        '401':
+          description: invalid token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Invalid or expired token
+  "/api/v1/mobile/logout":
+    delete:
+      summary: Mobile Logout
+      operationId: mobileLogout
+      tags:
+      - Mobile Authentication
+      security:
+      - bearer_auth: []
+      description: Logs out the mobile user. Client should discard the JWT token after
+        this call.
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: 'JWT token in format: Bearer <token>'
+        example: Bearer eyJhbGciOiJIUzI1NiJ9...
+        schema:
+          type: string
+      responses:
+        '204':
+          description: logout successful
+        '401':
+          description: missing token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Missing authentication token
+  "/api/v1/user_preference":
+    get:
+      summary: Get user preference
+      operationId: getUserPreference
+      tags:
+      - User Preferences
+      security:
+      - bearer_auth: []
+      description: Returns the current user's preferences (onboarding, goals, training
+        days, etc.).
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: 'JWT token: Bearer <token>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: preference found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    "$ref": "#/components/schemas/UserPreference"
+        '404':
+          description: preference not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '401':
+          description: unauthorized
+    post:
+      summary: Create user preference
+      operationId: createUserPreference
+      tags:
+      - User Preferences
+      security:
+      - bearer_auth: []
+      description: Creates or initializes user preferences. If primary_goal and training_days_per_week
+        are set, onboarding is marked complete.
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: 'JWT token: Bearer <token>'
+        schema:
+          type: string
+      responses:
+        '201':
+          description: preference created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    "$ref": "#/components/schemas/UserPreference"
+        '422':
+          description: validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_preference:
+                  type: object
+                  properties:
+                    primary_goal:
+                      type: string
+                      enum:
+                      - physique
+                      - strength
+                    training_days_per_week:
+                      type: integer
+                    preferred_workout_duration:
+                      type: integer
+                    experience_level:
+                      type: string
+                      enum:
+                      - Beginner
+                      - Intermediate
+                      - Advanced
+              required:
+              - user_preference
+    patch:
+      summary: Update user preference
+      operationId: updateUserPreference
+      tags:
+      - User Preferences
+      security:
+      - bearer_auth: []
+      description: Updates the current user's preferences.
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: 'JWT token: Bearer <token>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: preference updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    "$ref": "#/components/schemas/UserPreference"
+        '422':
+          description: validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_preference:
+                  type: object
+                  properties:
+                    primary_goal:
+                      type: string
+                      enum:
+                      - physique
+                      - strength
+                    training_days_per_week:
+                      type: integer
+                    preferred_workout_duration:
+                      type: integer
+                    experience_level:
+                      type: string
+                      enum:
+                      - Beginner
+                      - Intermediate
+                      - Advanced
+              required:
+              - user_preference
+  "/api/v1/weekly_feedbacks/current":
+    get:
+      summary: Get current weekly feedback
+      operationId: getCurrentWeeklyFeedback
+      tags:
+      - Weekly Feedback
+      security:
+      - bearer_auth: []
+      description: Returns AI-generated weekly feedback for the current week. If not
+        yet generated, returns 202 and queues generation.
+      parameters:
+      - name: Authorization
+        in: header
+        required: true
+        description: 'JWT token: Bearer <token>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: feedback found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      feedback:
+                        type: string
+                        description: AI-generated feedback text
+                      week_start:
+                        type: string
+                        format: date
+                      generated_at:
+                        type: string
+                        format: date-time
+                      stats:
+                        type: object
+                        nullable: true
+                        description: Stats snapshot for the week
+        '202':
+          description: feedback not yet generated (queued)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: generating
+                  message:
+                    type: string
+        '401':
+          description: unauthorized
+  "/api/v1/workout_templates":
+    get:
+      summary: List workout templates
+      operationId: listWorkoutTemplates
+      tags:
+      - Workout Templates
+      description: 'Returns all active workout templates. Optional: send JWT or session
+        for has_active_workout and active_workout_id per template.'
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        description: 'Optional JWT: Bearer <token> (shows active workout per template
+          for user)'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: templates list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/WorkoutTemplate"
+  "/api/v1/workout_templates/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: Workout template ID
+      required: true
+      schema:
+        type: integer
+    get:
+      summary: Get workout template
+      operationId: getWorkoutTemplate
+      tags:
+      - Workout Templates
+      description: Returns a single template with exercises. If authenticated, includes
+        has_active_workout and active_workout_id.
+      parameters:
+      - name: Authorization
+        in: header
+        required: false
+        description: 'Optional JWT: Bearer <token>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: template found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    "$ref": "#/components/schemas/WorkoutTemplateWithExercises"
+        '404':
+          description: template not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  "/api/v1/workouts":
+    get:
+      summary: List workouts
+      operationId: listWorkouts
+      tags:
+      - Workouts
+      security:
+      - bearer_auth: []
+      description: Returns workouts for the authenticated user. Optionally filter
+        by date range.
+      parameters:
+      - name: start_date
+        in: query
+        format: date
+        required: false
+        description: Filter workouts on or after this date (YYYY-MM-DD)
+        schema:
+          type: string
+      - name: end_date
+        in: query
+        format: date
+        required: false
+        description: Filter workouts on or before this date (YYYY-MM-DD)
+        schema:
+          type: string
+      - name: Authorization
+        in: header
+        required: true
+        description: 'JWT token: Bearer <token>'
+        schema:
+          type: string
+      responses:
+        '200':
+          description: workouts list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      "$ref": "#/components/schemas/WorkoutWithExercises"
+        '401':
+          description: unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  "/api/v1/workouts/{id}":
+    parameters:
+    - name: id
+      in: path
+      description: Workout ID
+      required: true
+      schema:
+        type: integer
+    get:
+      summary: Get workout
+      operationId: getWorkout
+      tags:
+      - Workouts
+      security:
+      - bearer_auth: []
+      description: Returns a single workout with exercises and sets.
+      responses:
+        '200':
+          description: workout found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    "$ref": "#/components/schemas/WorkoutWithExercises"
+        '404':
+          description: workout not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '401':
+          description: unauthorized
+  "/api/v1/workouts/{id}/start":
+    parameters:
+    - name: id
+      in: path
+      description: Workout ID
+      required: true
+      schema:
+        type: integer
+    patch:
+      summary: Start workout
+      operationId: startWorkout
+      tags:
+      - Workouts
+      security:
+      - bearer_auth: []
+      description: Marks the workout as started (sets started_at).
+      responses:
+        '200':
+          description: workout started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  workout:
+                    "$ref": "#/components/schemas/Workout"
+        '404':
+          description: workout not found
+        '422':
+          description: invalid transition (e.g. already started)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  "/api/v1/workouts/{id}/complete":
+    parameters:
+    - name: id
+      in: path
+      description: Workout ID
+      required: true
+      schema:
+        type: integer
+    patch:
+      summary: Complete workout
+      operationId: completeWorkout
+      tags:
+      - Workouts
+      security:
+      - bearer_auth: []
+      description: Marks the workout as completed. Workout must have been started
+        first.
+      responses:
+        '200':
+          description: workout completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  workout:
+                    "$ref": "#/components/schemas/Workout"
+        '404':
+          description: workout not found
+        '422':
+          description: invalid transition (e.g. not started)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+  "/api/v1/workout_templates/{id}/start":
+    parameters:
+    - name: id
+      in: path
+      description: Workout template ID
+      required: true
+      schema:
+        type: integer
+    post:
+      summary: Start workout from template
+      operationId: startWorkoutFromTemplate
+      tags:
+      - Workouts
+      security:
+      - bearer_auth: []
+      description: Creates a new workout from a template and returns it. Optional
+        scheduled_time (HH:MM).
+      parameters:
+      - name: scheduled_time
+        in: query
+        required: false
+        description: Scheduled time of day (HH:MM)
+        schema:
+          type: string
+      responses:
+        '201':
+          description: workout created from template
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  workout:
+                    "$ref": "#/components/schemas/WorkoutWithExercises"
+        '404':
+          description: template not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+        '409':
+          description: active workout from this template already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  active_workout_id:
+                    type: integer
 servers:
 - url: http://localhost:3000
   description: Development server
 - url: https://api.vitalforge.com
+  description: Production server
 components:
   securitySchemes:
+    bearer_auth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'JWT token for mobile authentication. Format: Bearer <token>'
     csrf_token:
       type: apiKey
       name: X-CSRF-Token
       in: header
-      description: CSRF protection token (required for POST/PUT/DELETE)
+      description: CSRF protection token (required for web POST/PUT/DELETE)
     session_cookie:
       type: apiKey
       name: Cookie
       in: header
-      description: Session cookie (automatically set after login)
+      description: Session cookie (automatically set after web login)
   schemas:
     User:
       type: object
@@ -392,8 +1105,368 @@ components:
         message:
           type: string
           example: Successfully logged out
+    Workout:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        workout_date:
+          type: string
+          format: date
+        scheduled_time:
+          type: string
+          example: '09:00'
+        workout_template_id:
+          type: integer
+          nullable: true
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        duration_minutes:
+          type: integer
+          nullable: true
+        workout_type:
+          type: string
+          nullable: true
+        calories_burned:
+          type: integer
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        intensity_level:
+          type: string
+          nullable: true
+        completed:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    WorkoutWithExercises:
+      type: object
+      allOf:
+      - "$ref": "#/components/schemas/Workout"
+      - type: object
+        properties:
+          workout_exercises:
+            type: array
+            items:
+              "$ref": "#/components/schemas/WorkoutExercise"
+    WorkoutExercise:
+      type: object
+      properties:
+        id:
+          type: integer
+        order_position:
+          type: integer
+        notes:
+          type: string
+          nullable: true
+        rest_between_sets:
+          type: integer
+          nullable: true
+        completed:
+          type: boolean
+        exercise:
+          "$ref": "#/components/schemas/ExerciseSummary"
+        exercise_sets:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ExerciseSetSummary"
+    ExerciseSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        muscle_group:
+          type: string
+          nullable: true
+        equipment:
+          type: string
+        exercise_type:
+          type: string
+    ExerciseSetSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        set_number:
+          type: integer
+        reps:
+          type: integer
+        weight:
+          type: number
+          nullable: true
+        weight_unit:
+          type: string
+          nullable: true
+        rpe:
+          type: integer
+          nullable: true
+        to_failure:
+          type: boolean
+        notes:
+          type: string
+          nullable: true
+        completed:
+          type: boolean
+    ExerciseSet:
+      type: object
+      properties:
+        id:
+          type: integer
+        workout_exercise_id:
+          type: integer
+        set_number:
+          type: integer
+        reps:
+          type: integer
+        weight:
+          type: number
+          nullable: true
+        weight_unit:
+          type: string
+          nullable: true
+        rest_after_seconds:
+          type: integer
+          nullable: true
+        rpe:
+          type: integer
+          nullable: true
+        to_failure:
+          type: boolean
+        notes:
+          type: string
+          nullable: true
+        completed:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    ExerciseSetUpdate:
+      type: object
+      properties:
+        reps:
+          type: integer
+        weight:
+          type: number
+        weight_unit:
+          type: string
+        rest_after_seconds:
+          type: integer
+        rpe:
+          type: integer
+        to_failure:
+          type: boolean
+        notes:
+          type: string
+        completed:
+          type: boolean
+    WorkoutTemplate:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        goal_type:
+          type: string
+          nullable: true
+        difficulty_level:
+          type: string
+          nullable: true
+        days_per_week:
+          type: integer
+          nullable: true
+        estimated_duration_minutes:
+          type: integer
+          nullable: true
+        total_exercises:
+          type: integer
+          nullable: true
+        source:
+          type: string
+          nullable: true
+        has_active_workout:
+          type: boolean
+        active_workout_id:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    WorkoutTemplateWithExercises:
+      type: object
+      allOf:
+      - "$ref": "#/components/schemas/WorkoutTemplate"
+      - type: object
+        properties:
+          exercises:
+            type: array
+            items:
+              "$ref": "#/components/schemas/WorkoutTemplateExercise"
+    WorkoutTemplateExercise:
+      type: object
+      properties:
+        id:
+          type: integer
+        exercise_id:
+          type: integer
+        order_position:
+          type: integer
+        recommended_sets:
+          type: integer
+        recommended_reps:
+          type: string
+        rest_seconds:
+          type: integer
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        exercise:
+          "$ref": "#/components/schemas/ExerciseDetail"
+    ExerciseDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        exercise_type:
+          type: string
+        equipment:
+          type: string
+        muscle_group:
+          type: string
+          nullable: true
+        difficulty_level:
+          type: string
+          nullable: true
+        instructions:
+          type: string
+          nullable: true
+    UserPreference:
+      type: object
+      properties:
+        id:
+          type: integer
+        user_id:
+          type: integer
+        primary_goal:
+          type: string
+          enum:
+          - physique
+          - strength
+          nullable: true
+        training_days_per_week:
+          type: integer
+          nullable: true
+        preferred_workout_duration:
+          type: integer
+          nullable: true
+        experience_level:
+          type: string
+          enum:
+          - Beginner
+          - Intermediate
+          - Advanced
+          nullable: true
+        onboarding_completed:
+          type: boolean
+        onboarding_completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    UserPreferenceCreateUpdate:
+      type: object
+      properties:
+        primary_goal:
+          type: string
+          enum:
+          - physique
+          - strength
+        training_days_per_week:
+          type: integer
+        preferred_workout_duration:
+          type: integer
+        experience_level:
+          type: string
+          enum:
+          - Beginner
+          - Intermediate
+          - Advanced
+    WeeklyFeedback:
+      type: object
+      properties:
+        feedback:
+          type: string
+          description: AI-generated feedback text
+        week_start:
+          type: string
+          format: date
+        generated_at:
+          type: string
+          format: date-time
+        stats:
+          type: object
+          description: Snapshot of user stats for the week
+          nullable: true
+    StartFromTemplateParams:
+      type: object
+      properties:
+        scheduled_time:
+          type: string
+          example: '09:00'
+          description: Optional scheduled time (HH:MM)
 tags:
-- name: Authentication
-  description: User authentication operations (login, logout, signup)
+- name: Health
+  description: Health check and API status
+- name: API Authentication
+  description: Web session-based authentication (CSRF, login, logout, current user)
 - name: Users
-  description: User account management operations
+  description: User registration (signup)
+- name: Mobile Authentication
+  description: JWT-based authentication for mobile clients
+- name: Workouts
+  description: Workout sessions (list, show, start, complete, start from template)
+- name: Workout Templates
+  description: Predefined workout templates (list, show)
+- name: Exercise Sets
+  description: Update exercise set data (reps, weight, completed, etc.)
+- name: User Preferences
+  description: User preferences and onboarding
+- name: Weekly Feedback
+  description: AI-generated weekly feedback
