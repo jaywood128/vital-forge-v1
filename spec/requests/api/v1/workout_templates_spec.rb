@@ -182,7 +182,6 @@ RSpec.describe 'API V1 Workout Templates', type: :request do
 
     it 'returns 404 for non-existent template' do
       get '/api/v1/workout_templates/99999', as: :json
-
       expect(response).to have_http_status(:not_found)
       json = JSON.parse(response.body)
       expect(json['error']).to eq('Workout template not found')

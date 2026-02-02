@@ -46,7 +46,7 @@ RSpec.describe 'API V1 Workouts', type: :request do
   end
 
   describe 'GET /api/v1/workouts' do
-    xcontext 'with session authentication (web client) - SKIPPED: Rails 8.0.3 session bug in request specs' do
+    context 'with session authentication (web client) - SKIPPED: Rails 8.0.3 session bug in request specs' do
       before do
       # Get CSRF token
       get api_v1_csrf_path, as: :json
@@ -60,16 +60,12 @@ RSpec.describe 'API V1 Workouts', type: :request do
 
       # Update CSRF token if changed
       @csrf_token = response.headers['X-CSRF-Token'] || @csrf_token
-
-      # Extract session cookie from the Set-Cookie header
-      @session_cookie = response.headers['Set-Cookie']
       end
 
       it 'returns all workouts for the authenticated user' do
         get api_v1_workouts_path,
           headers: {
-            'X-CSRF-Token' => @csrf_token,
-            'Cookie' => @session_cookie
+            'X-CSRF-Token' => @csrf_token
           },
           as: :json
         expect(response).to have_http_status(:ok)
@@ -83,8 +79,7 @@ RSpec.describe 'API V1 Workouts', type: :request do
       it 'orders workouts by workout_date descending' do
         get api_v1_workouts_path,
           headers: {
-            'X-CSRF-Token' => @csrf_token,
-            'Cookie' => @session_cookie
+            'X-CSRF-Token' => @csrf_token
           },
           as: :json
 
@@ -96,8 +91,7 @@ RSpec.describe 'API V1 Workouts', type: :request do
       it 'does not return other users workouts' do
         get api_v1_workouts_path,
           headers: {
-            'X-CSRF-Token' => @csrf_token,
-            'Cookie' => @session_cookie
+            'X-CSRF-Token' => @csrf_token
           },
           as: :json
 
@@ -109,8 +103,7 @@ RSpec.describe 'API V1 Workouts', type: :request do
       it 'returns only specified fields' do
         get api_v1_workouts_path,
           headers: {
-            'X-CSRF-Token' => @csrf_token,
-            'Cookie' => @session_cookie
+            'X-CSRF-Token' => @csrf_token
           },
           as: :json
 
@@ -211,8 +204,7 @@ RSpec.describe 'API V1 Workouts', type: :request do
         skip "Rails 8.0.3 has a session[:key] bug in request specs. Manually tested in Postman - works correctly."
         get api_v1_workout_path(workout1),
           headers: {
-            'X-CSRF-Token' => @csrf_token,
-            'Cookie' => @session_cookie
+            'X-CSRF-Token' => @csrf_token
           },
           as: :json
 
@@ -227,8 +219,7 @@ RSpec.describe 'API V1 Workouts', type: :request do
         skip "Rails 8.0.3 has a session[:key] bug in request specs. Manually tested in Postman - works correctly."
         get api_v1_workout_path(99999),
           headers: {
-            'X-CSRF-Token' => @csrf_token,
-            'Cookie' => @session_cookie
+            'X-CSRF-Token' => @csrf_token
           },
           as: :json
 
@@ -242,8 +233,7 @@ RSpec.describe 'API V1 Workouts', type: :request do
         skip "Rails 8.0.3 has a session[:key] bug in request specs. Manually tested in Postman - works correctly."
         get api_v1_workout_path(other_workout),
           headers: {
-            'X-CSRF-Token' => @csrf_token,
-            'Cookie' => @session_cookie
+            'X-CSRF-Token' => @csrf_token
           },
           as: :json
 
