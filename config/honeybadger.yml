@@ -24,9 +24,9 @@ development_environments:
 # Enable verbose debug logging (useful for troubleshooting).
 debug: false
 
-# Enable Honeybadger Insights
+# Enable Honeybadger Insights (only when API key is set, e.g. staging/production)
 insights:
-  enabled: true
+  enabled: <%= ENV["HONEYBADGER_API_KEY"].present? %>
 
 # Sidekiq error reporting
 sidekiq:
