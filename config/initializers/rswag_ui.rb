@@ -9,7 +9,7 @@ if defined?(Rswag::Ui)
     # (under openapi_root) as JSON or YAML endpoints, then the list below should
     # correspond to the relative paths for those endpoints.
 
-    c.swagger_endpoint "/api-docs/v1/swagger.yaml", "VitalForge API V1"
+    c.swagger_endpoint "/openapi/v1/swagger.yaml", "VitalForge API V1"
 
     # Add Basic Auth in case your API is private
     # c.basic_auth_enabled = true

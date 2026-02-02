@@ -2,8 +2,13 @@ require "sidekiq/web"
 require "sidekiq/cron/web"
 
 Rails.application.routes.draw do
+  # Swagger UI at /api-docs
   if defined?(Rswag::Ui::Engine)
     mount Rswag::Ui::Engine => "/api-docs"
+  end
+  # OpenAPI spec files at /openapi/v1/swagger.yaml (UI fetches from this)
+  if defined?(Rswag::Api::Engine)
+    mount Rswag::Api::Engine => "/openapi"
   end
 
   # Mount Sidekiq Web UI

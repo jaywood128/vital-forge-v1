@@ -2,6 +2,32 @@
 
 This guide explains how to document your API endpoints using **Rswag** (Swagger/OpenAPI for Rails).
 
+## 📋 Documented Endpoints (OpenAPI 3.0)
+
+All API endpoints are documented and generated from RSpec request specs:
+
+| Spec file | Endpoints |
+|-----------|-----------|
+| `spec/requests/api/v1/auth_swagger_spec.rb` | `GET /api/v1/health`, `GET /api/v1/csrf`, `POST /api/v1/login`, `GET /api/v1/current_user`, `DELETE /api/v1/logout`, `POST /api/v1/signup` |
+| `spec/requests/api/v1/mobile/auth_swagger_spec.rb` | `POST /api/v1/mobile/login`, `GET /api/v1/mobile/current_user`, `DELETE /api/v1/mobile/logout` |
+| `spec/requests/api/v1/workouts_swagger_spec.rb` | `GET /api/v1/workouts`, `GET /api/v1/workouts/:id`, `PATCH /api/v1/workouts/:id/start`, `PATCH /api/v1/workouts/:id/complete`, `POST /api/v1/workout_templates/:id/start` |
+| `spec/requests/api/v1/workout_templates_swagger_spec.rb` | `GET /api/v1/workout_templates`, `GET /api/v1/workout_templates/:id` |
+| `spec/requests/api/v1/exercise_sets_swagger_spec.rb` | `PATCH /api/v1/exercise_sets/:id` |
+| `spec/requests/api/v1/user_preferences_swagger_spec.rb` | `GET /api/v1/user_preference`, `POST /api/v1/user_preference`, `PATCH /api/v1/user_preference` |
+| `spec/requests/api/v1/weekly_feedbacks_swagger_spec.rb` | `GET /api/v1/weekly_feedbacks/current` |
+
+**Generate/update OpenAPI YAML:**
+```bash
+RAILS_ENV=test bundle exec rake rswag:specs:swaggerize
+```
+This writes `swagger/v1/swagger.yaml`. The spec is served at **http://localhost:3000/openapi/v1/swagger.yaml** (via `Rswag::Api::Engine`). Then view Swagger UI at **http://localhost:3000/api-docs** (when server is running).
+
+**If you see "Failed to load API definition" / "Not Found":**
+1. Run the command above to generate the YAML.
+2. Restart the Rails server so it picks up the new file.
+
+---
+
 ## 🎯 Why Rswag?
 
 Since VitalForge uses a **separate Next.js frontend**, we need:

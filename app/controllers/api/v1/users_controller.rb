@@ -4,6 +4,8 @@ module Api
   module V1
     class UsersController < Api::V1::BaseController
       skip_before_action :require_api_authentication, only: [ :create ]
+      # Allow API clients (Insomnia, mobile, etc.) to call signup without CSRF
+      skip_before_action :verify_authenticity_token, only: [ :create ]
 
       # POST /api/v1/signup
       def create
@@ -30,7 +32,11 @@ module Api
       private
 
       def user_params
-        params.require(:user).permit(:email, :password, :password_confirmation, :first_name, :last_name)
+        base = params.require(:user).permit(:email, :password, :password_confirmation, :first_name, :last_name)
+        # Some clients (e.g. Insomnia) send password at root; merge them in if missing under :user
+        base[:password] ||= params[:password] if params[:password].present?
+        base[:password_confirmation] ||= params[:password_confirmation] if params[:password_confirmation].present?
+        base
       end
 
       def serialize_user(user)

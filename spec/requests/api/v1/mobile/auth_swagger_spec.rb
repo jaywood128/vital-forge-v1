@@ -16,6 +16,7 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
 
   path "/api/v1/mobile/login" do
     post "Mobile Login (JWT)" do
+      operationId "mobileLogin"
       tags "Mobile Authentication"
       consumes "application/json"
       produces "application/json"
@@ -117,6 +118,7 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
 
   path "/api/v1/mobile/current_user" do
     get "Get Current Mobile User" do
+      operationId "getCurrentMobileUser"
       tags "Mobile Authentication"
       produces "application/json"
       security [ { bearer_auth: [] } ]
@@ -200,6 +202,7 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
 
   path "/api/v1/mobile/logout" do
     delete "Mobile Logout" do
+      operationId "mobileLogout"
       tags "Mobile Authentication"
       produces "application/json"
       security [ { bearer_auth: [] } ]
