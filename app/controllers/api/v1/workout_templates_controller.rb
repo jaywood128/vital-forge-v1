@@ -8,6 +8,7 @@ module Api
       # Keep index/show public but hydrate current_user if present
       skip_before_action :require_api_authentication, only: [ :index, :show ]
       skip_before_action :authenticate_user_dual!, only: [ :index, :show ]
+      skip_before_action :verify_authenticity_token, if: -> { request.headers["Authorization"].present? }
       before_action :set_current_user_if_present, only: [ :index, :show ]
       before_action :set_workout_template, only: [ :show ]
 

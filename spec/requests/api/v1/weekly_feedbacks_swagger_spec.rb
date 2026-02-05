@@ -26,10 +26,7 @@ RSpec.describe "API V1 Weekly Feedbacks", type: :request do
       tags "Weekly Feedback"
       produces "application/json"
       security [ { bearer_auth: [] } ]
-      description "Returns AI-generated weekly feedback for the current week. If not yet generated, returns 202 and queues generation."
-
-      parameter name: :Authorization, in: :header, type: :string, required: true,
-        description: "JWT token: Bearer <token>"
+      description "Returns AI-generated weekly feedback for the current week. If not yet generated, returns 202 and queues generation. Use the 'Authorize' button at the top right to set your JWT token."
 
       response "200", "feedback found" do
         schema type: :object,

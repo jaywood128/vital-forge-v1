@@ -23,6 +23,21 @@ class User < ApplicationRecord
     uniqueness: { case_sensitive: false },
     format: { with: URI::MailTo::EMAIL_REGEXP }
 
+  # Phone number validation (US only for now)
+  # Accepts formats: (415) 555-1234, 415-555-1234, 4155551234, +1 415 555 1234
+  # Normalizes to E.164 format: +14155551234
+  validates :phone_number,
+    uniqueness: true,
+    allow_nil: true,
+    format: {
+      with: /\A[\d\s\-\(\)\+]+\z/,
+      message: "must contain only digits, spaces, dashes, parentheses, or +"
+    },
+    length: { minimum: 10, maximum: 20, allow_nil: true }
+
+  # Normalize phone number before saving
+  before_save :normalize_phone_number
+
   validates :first_name, :last_name, presence: true
 
   # Normalize email to lowercase before saving
@@ -67,5 +82,28 @@ class User < ApplicationRecord
 
   def normalize_email
     self.email = email.downcase.strip if email.present?
+  end
+
+  def normalize_phone_number
+    return unless phone_number.present?
+
+    # Remove all non-digits except leading +
+    digits = phone_number.gsub(/[^\d\+]/, "")
+
+    # US-only support for now - normalize to E.164 format (+1XXXXXXXXXX)
+    # International support can be added in the future
+    if digits.match?(/\A\d{10}\z/)
+      # Exactly 10 digits, assume US number
+      self.phone_number = "+1#{digits}"
+    elsif digits.start_with?("+1") && digits.length == 12
+      # Already has +1 prefix with 10 digits
+      self.phone_number = digits
+    elsif digits.start_with?("+")
+      # Has + but not +1, keep as-is for now (future international support)
+      self.phone_number = digits
+    else
+      # Default to US: add +1 prefix
+      self.phone_number = "+1#{digits}"
+    end
   end
 end

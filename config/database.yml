@@ -101,6 +101,22 @@ test:
 # Read https://guides.rubyonrails.org/configuring.html#configuring-a-database
 # for a full overview on how database connection configuration can be specified.
 #
+# Staging environment - uses Supabase hosted PostgreSQL
+staging:
+  primary:
+    <<: *default
+    url: <%= ENV["STAGING_DATABASE_URL"] %>
+  # Staging uses single database for all Rails 8 features
+  cache:
+    <<: *default
+    url: <%= ENV["STAGING_DATABASE_URL"] %>
+  queue:
+    <<: *default
+    url: <%= ENV["STAGING_DATABASE_URL"] %>
+  cable:
+    <<: *default
+    url: <%= ENV["STAGING_DATABASE_URL"] %>
+
 production:
   primary:
     <<: *default

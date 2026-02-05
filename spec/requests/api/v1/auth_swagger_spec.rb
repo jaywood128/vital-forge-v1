@@ -60,8 +60,8 @@ RSpec.describe "API V1 Authentication", type: :request do
           user: {
             type: :object,
             properties: {
-              email: { type: :string, format: :email, example: "john.doe@example.com" },
-              password: { type: :string, format: :password, example: "Password123!" }
+              email: { type: :string, format: :email, example: "new.user@example.com" },
+              password: { type: :string, format: :password, example: "SecurePass123!" }
             },
             required: [ "email", "password" ]
           }

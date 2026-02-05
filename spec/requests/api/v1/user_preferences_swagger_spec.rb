@@ -26,10 +26,7 @@ RSpec.describe "API V1 User Preferences", type: :request do
       tags "User Preferences"
       produces "application/json"
       security [ { bearer_auth: [] } ]
-      description "Returns the current user's preferences (onboarding, goals, training days, etc.)."
-
-      parameter name: :Authorization, in: :header, type: :string, required: true,
-        description: "JWT token: Bearer <token>"
+      description "Returns the current user's preferences (onboarding, goals, training days, etc.). Use the 'Authorize' button at the top right to set your JWT token."
 
       response "200", "preference found" do
         schema type: :object,
@@ -64,10 +61,8 @@ RSpec.describe "API V1 User Preferences", type: :request do
       consumes "application/json"
       produces "application/json"
       security [ { bearer_auth: [] } ]
-      description "Creates or initializes user preferences. If primary_goal and training_days_per_week are set, onboarding is marked complete."
+      description "Creates or initializes user preferences. If primary_goal and training_days_per_week are set, onboarding is marked complete. Use the 'Authorize' button at the top right to set your JWT token."
 
-      parameter name: :Authorization, in: :header, type: :string, required: true,
-        description: "JWT token: Bearer <token>"
       parameter name: :user_preference, in: :body, schema: {
         type: :object,
         properties: {
@@ -130,10 +125,8 @@ RSpec.describe "API V1 User Preferences", type: :request do
       consumes "application/json"
       produces "application/json"
       security [ { bearer_auth: [] } ]
-      description "Updates the current user's preferences."
+      description "Updates the current user's preferences. Use the 'Authorize' button at the top right to set your JWT token."
 
-      parameter name: :Authorization, in: :header, type: :string, required: true,
-        description: "JWT token: Bearer <token>"
       parameter name: :user_preference, in: :body, schema: {
         type: :object,
         properties: {

@@ -1,4 +1,9 @@
 class Api::V1::WeeklyFeedbacksController < Api::V1::BaseController
+  include DualAuthenticatable
+
+  skip_before_action :require_api_authentication
+  skip_before_action :verify_authenticity_token, if: -> { request.headers["Authorization"].present? }
+
   # GET /api/v1/weekly_feedbacks/current
   def current
     feedback = current_user.weekly_feedbacks

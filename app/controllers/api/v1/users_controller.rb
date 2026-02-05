@@ -32,7 +32,7 @@ module Api
       private
 
       def user_params
-        base = params.require(:user).permit(:email, :password, :password_confirmation, :first_name, :last_name)
+        base = params.require(:user).permit(:email, :password, :password_confirmation, :first_name, :last_name, :phone_number)
         # Some clients (e.g. Insomnia) send password at root; merge them in if missing under :user
         base[:password] ||= params[:password] if params[:password].present?
         base[:password_confirmation] ||= params[:password_confirmation] if params[:password_confirmation].present?
