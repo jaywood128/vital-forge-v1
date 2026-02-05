@@ -68,22 +68,29 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_04_021202) do
     t.index ["process_id", "job_id"], name: "index_solid_queue_claimed_executions_on_process_id_and_job_id"
   end
 
-  create_table "solid_queue_failed_executions", force: :cascade do |t|
-    t.bigint "job_id", null: false
-    t.text "error"
+  create_table "exercise_sets", force: :cascade do |t|
+    t.bigint "workout_exercise_id", null: false
+    t.integer "set_number", null: false
+    t.integer "reps", null: false
+    t.decimal "weight", precision: 6, scale: 2
+    t.string "weight_unit", default: "lbs"
+    t.integer "rest_after_seconds"
+    t.integer "rpe"
+    t.boolean "to_failure", default: false
+    t.text "notes"
+    t.boolean "completed", default: false
     t.datetime "created_at", null: false
     t.index ["job_id"], name: "index_solid_queue_failed_executions_on_job_id", unique: true
   end
 
-  create_table "solid_queue_jobs", force: :cascade do |t|
-    t.string "queue_name", null: false
-    t.string "class_name", null: false
-    t.text "arguments"
-    t.integer "priority", default: 0, null: false
-    t.string "active_job_id"
-    t.datetime "scheduled_at"
-    t.datetime "finished_at"
-    t.string "concurrency_key"
+  create_table "exercises", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.string "exercise_type", null: false
+    t.string "equipment", null: false
+    t.string "muscle_group"
+    t.string "difficulty_level"
+    t.text "instructions"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["active_job_id"], name: "index_solid_queue_jobs_on_active_job_id"
@@ -93,19 +100,27 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_04_021202) do
     t.index ["scheduled_at", "finished_at"], name: "index_solid_queue_jobs_for_alerting"
   end
 
-  create_table "solid_queue_pauses", force: :cascade do |t|
-    t.string "queue_name", null: false
+  create_table "user_preferences", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "primary_goal"
+    t.integer "training_days_per_week"
+    t.integer "preferred_workout_duration"
+    t.string "experience_level"
+    t.boolean "onboarding_completed", default: false, null: false
+    t.datetime "onboarding_completed_at"
     t.datetime "created_at", null: false
     t.index ["queue_name"], name: "index_solid_queue_pauses_on_queue_name", unique: true
   end
 
-  create_table "solid_queue_processes", force: :cascade do |t|
-    t.string "kind", null: false
-    t.datetime "last_heartbeat_at", null: false
-    t.bigint "supervisor_id"
-    t.integer "pid", null: false
-    t.string "hostname"
-    t.text "metadata"
+  create_table "users", force: :cascade do |t|
+    t.string "email", null: false
+    t.string "first_name"
+    t.string "last_name"
+    t.integer "failed_login_attempts", default: 0, null: false
+    t.datetime "locked_at"
+    t.datetime "last_login_at"
+    t.string "password_reset_token"
+    t.datetime "password_reset_sent_at"
     t.datetime "created_at", null: false
     t.string "name", null: false
     t.index ["last_heartbeat_at"], name: "index_solid_queue_processes_on_last_heartbeat_at"
@@ -113,55 +128,70 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_04_021202) do
     t.index ["supervisor_id"], name: "index_solid_queue_processes_on_supervisor_id"
   end
 
-  create_table "solid_queue_ready_executions", force: :cascade do |t|
-    t.bigint "job_id", null: false
-    t.string "queue_name", null: false
-    t.integer "priority", default: 0, null: false
+  create_table "weekly_feedbacks", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.date "week_start", null: false
+    t.text "feedback_text", null: false
+    t.jsonb "stats_snapshot"
+    t.datetime "generated_at", null: false
     t.datetime "created_at", null: false
     t.index ["job_id"], name: "index_solid_queue_ready_executions_on_job_id", unique: true
     t.index ["priority", "job_id"], name: "index_solid_queue_poll_all"
     t.index ["queue_name", "priority", "job_id"], name: "index_solid_queue_poll_by_queue"
   end
 
-  create_table "solid_queue_recurring_executions", force: :cascade do |t|
-    t.bigint "job_id", null: false
-    t.string "task_key", null: false
-    t.datetime "run_at", null: false
+  create_table "workout_exercises", force: :cascade do |t|
+    t.bigint "workout_id", null: false
+    t.bigint "exercise_id", null: false
+    t.integer "order_position", default: 0, null: false
+    t.text "notes"
+    t.integer "rest_between_sets"
+    t.boolean "completed", default: false, null: false
     t.datetime "created_at", null: false
     t.index ["job_id"], name: "index_solid_queue_recurring_executions_on_job_id", unique: true
     t.index ["task_key", "run_at"], name: "index_solid_queue_recurring_executions_on_task_key_and_run_at", unique: true
   end
 
-  create_table "solid_queue_recurring_tasks", force: :cascade do |t|
-    t.string "key", null: false
-    t.string "schedule", null: false
-    t.string "command", limit: 2048
-    t.string "class_name"
-    t.text "arguments"
-    t.string "queue_name"
-    t.integer "priority", default: 0
-    t.boolean "static", default: true, null: false
-    t.text "description"
+  create_table "workout_template_exercises", force: :cascade do |t|
+    t.bigint "workout_template_id", null: false
+    t.bigint "exercise_id", null: false
+    t.integer "order_position", default: 0, null: false
+    t.integer "recommended_sets", null: false
+    t.string "recommended_reps", null: false
+    t.integer "rest_seconds"
+    t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["key"], name: "index_solid_queue_recurring_tasks_on_key", unique: true
     t.index ["static"], name: "index_solid_queue_recurring_tasks_on_static"
   end
 
-  create_table "solid_queue_scheduled_executions", force: :cascade do |t|
-    t.bigint "job_id", null: false
-    t.string "queue_name", null: false
-    t.integer "priority", default: 0, null: false
-    t.datetime "scheduled_at", null: false
+  create_table "workout_templates", force: :cascade do |t|
+    t.string "name", null: false
+    t.text "description"
+    t.string "goal_type", null: false
+    t.string "difficulty_level"
+    t.integer "days_per_week", null: false
+    t.integer "estimated_duration_minutes"
+    t.integer "total_exercises"
+    t.string "source"
+    t.boolean "is_active", default: true, null: false
     t.datetime "created_at", null: false
     t.index ["job_id"], name: "index_solid_queue_scheduled_executions_on_job_id", unique: true
     t.index ["scheduled_at", "priority", "job_id"], name: "index_solid_queue_dispatch_all"
   end
 
-  create_table "solid_queue_semaphores", force: :cascade do |t|
-    t.string "key", null: false
-    t.integer "value", default: 1, null: false
-    t.datetime "expires_at", null: false
+  create_table "workouts", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.datetime "workout_date", null: false
+    t.integer "duration_minutes"
+    t.string "workout_type"
+    t.integer "calories_burned"
+    t.text "notes"
+    t.integer "intensity_level"
+    t.boolean "completed", default: false, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["expires_at"], name: "index_solid_queue_semaphores_on_expires_at"
