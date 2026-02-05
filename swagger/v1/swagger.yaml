@@ -98,11 +98,11 @@ paths:
                     email:
                       type: string
                       format: email
-                      example: john.doe@example.com
+                      example: new.user@example.com
                     password:
                       type: string
                       format: password
-                      example: Password123!
+                      example: SecurePass123!
                   required:
                   - email
                   - password
@@ -254,14 +254,9 @@ paths:
       security:
       - bearer_auth: []
       description: Updates an exercise set (reps, weight, completed, notes, etc.).
-        Set must belong to the current user's workout.
-      parameters:
-      - name: Authorization
-        in: header
-        required: true
-        description: 'JWT token: Bearer <token>'
-        schema:
-          type: string
+        Set must belong to the current user's workout. Use the 'Authorize' button
+        at the top right to set your JWT token.
+      parameters: []
       responses:
         '200':
           description: exercise set updated
@@ -310,14 +305,116 @@ paths:
                       type: boolean
               required:
               - exercise_set
+  "/api/v1/mobile/signup":
+    post:
+      summary: Mobile Signup (Registration)
+      operationId: mobileSignup
+      tags:
+      - Mobile Authentication
+      description: Creates a new user account for mobile and returns a JWT token.
+        Use this token in the Authorization header for subsequent requests. Copy the
+        returned token and click 'Authorize' in Swagger UI to test protected endpoints.
+      parameters: []
+      responses:
+        '201':
+          description: signup successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 1
+                          email:
+                            type: string
+                            example: newuser@example.com
+                          first_name:
+                            type: string
+                            example: John
+                          last_name:
+                            type: string
+                            example: Doe
+                      token:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImV4cCI6MTcwMDAwMDAwMCwiaWF0IjoxNjk5OTEzNjAwfQ.abcdef123456
+                        description: JWT token - copy this and click 'Authorize' button
+                          to use in protected endpoints
+                      expires_at:
+                        type: string
+                        format: date-time
+                        example: '2024-11-24T12:00:00Z'
+                        description: Token expiration time (24 hours from signup)
+                      message:
+                        type: string
+                        example: Account created successfully! Welcome, John!
+        '422':
+          description: email already taken
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+                    example:
+                      email:
+                      - has already been taken
+                      password:
+                      - is too short (minimum is 8 characters)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                      format: email
+                      example: newuser@example.com
+                    password:
+                      type: string
+                      format: password
+                      example: Password123!
+                    password_confirmation:
+                      type: string
+                      format: password
+                      example: Password123!
+                    first_name:
+                      type: string
+                      example: John
+                    last_name:
+                      type: string
+                      example: Doe
+                  required:
+                  - email
+                  - password
+                  - password_confirmation
+                  - first_name
+                  - last_name
+              required:
+              - user
   "/api/v1/mobile/login":
     post:
       summary: Mobile Login (JWT)
       operationId: mobileLogin
       tags:
       - Mobile Authentication
-      description: Authenticates a mobile user and returns a JWT token. Use this token
-        in the Authorization header for subsequent requests.
+      description: Authenticates a mobile user and returns a JWT token. Copy the returned
+        token and click 'Authorize' in Swagger UI to test protected endpoints.
       parameters: []
       responses:
         '200':
@@ -380,7 +477,7 @@ paths:
                     email:
                       type: string
                       format: email
-                      example: mobile.user@example.com
+                      example: newuser@example.com
                     password:
                       type: string
                       format: password
@@ -398,16 +495,9 @@ paths:
       - Mobile Authentication
       security:
       - bearer_auth: []
-      description: Returns the currently authenticated user based on JWT token. Include
-        the token in the Authorization header.
-      parameters:
-      - name: Authorization
-        in: header
-        required: true
-        description: 'JWT token in format: Bearer <token>'
-        example: Bearer eyJhbGciOiJIUzI1NiJ9...
-        schema:
-          type: string
+      description: Returns the currently authenticated user based on JWT token. First
+        login or signup to get a token, then click 'Authorize' button at the top right
+        and paste the token.
       responses:
         '200':
           description: current user retrieved
@@ -462,16 +552,9 @@ paths:
       - Mobile Authentication
       security:
       - bearer_auth: []
-      description: Logs out the mobile user. Client should discard the JWT token after
-        this call.
-      parameters:
-      - name: Authorization
-        in: header
-        required: true
-        description: 'JWT token in format: Bearer <token>'
-        example: Bearer eyJhbGciOiJIUzI1NiJ9...
-        schema:
-          type: string
+      description: Logs out the mobile user. Use the 'Authorize' button at the top
+        right to set your JWT token. Client should discard the JWT token after this
+        call.
       responses:
         '204':
           description: logout successful
@@ -494,14 +577,7 @@ paths:
       security:
       - bearer_auth: []
       description: Returns the current user's preferences (onboarding, goals, training
-        days, etc.).
-      parameters:
-      - name: Authorization
-        in: header
-        required: true
-        description: 'JWT token: Bearer <token>'
-        schema:
-          type: string
+        days, etc.). Use the 'Authorize' button at the top right to set your JWT token.
       responses:
         '200':
           description: preference found
@@ -531,14 +607,9 @@ paths:
       security:
       - bearer_auth: []
       description: Creates or initializes user preferences. If primary_goal and training_days_per_week
-        are set, onboarding is marked complete.
-      parameters:
-      - name: Authorization
-        in: header
-        required: true
-        description: 'JWT token: Bearer <token>'
-        schema:
-          type: string
+        are set, onboarding is marked complete. Use the 'Authorize' button at the
+        top right to set your JWT token.
+      parameters: []
       responses:
         '201':
           description: preference created
@@ -591,14 +662,9 @@ paths:
       - User Preferences
       security:
       - bearer_auth: []
-      description: Updates the current user's preferences.
-      parameters:
-      - name: Authorization
-        in: header
-        required: true
-        description: 'JWT token: Bearer <token>'
-        schema:
-          type: string
+      description: Updates the current user's preferences. Use the 'Authorize' button
+        at the top right to set your JWT token.
+      parameters: []
       responses:
         '200':
           description: preference updated
@@ -653,14 +719,8 @@ paths:
       security:
       - bearer_auth: []
       description: Returns AI-generated weekly feedback for the current week. If not
-        yet generated, returns 202 and queues generation.
-      parameters:
-      - name: Authorization
-        in: header
-        required: true
-        description: 'JWT token: Bearer <token>'
-        schema:
-          type: string
+        yet generated, returns 202 and queues generation. Use the 'Authorize' button
+        at the top right to set your JWT token.
       responses:
         '200':
           description: feedback found
@@ -777,7 +837,7 @@ paths:
       security:
       - bearer_auth: []
       description: Returns workouts for the authenticated user. Optionally filter
-        by date range.
+        by date range. Use JWT token from mobile login/signup.
       parameters:
       - name: start_date
         in: query
@@ -791,12 +851,6 @@ paths:
         format: date
         required: false
         description: Filter workouts on or before this date (YYYY-MM-DD)
-        schema:
-          type: string
-      - name: Authorization
-        in: header
-        required: true
-        description: 'JWT token: Bearer <token>'
         schema:
           type: string
       responses:
@@ -835,7 +889,8 @@ paths:
       - Workouts
       security:
       - bearer_auth: []
-      description: Returns a single workout with exercises and sets.
+      description: Returns a single workout with exercises and sets. Use JWT token
+        from mobile login/signup.
       responses:
         '200':
           description: workout found
@@ -872,7 +927,8 @@ paths:
       - Workouts
       security:
       - bearer_auth: []
-      description: Marks the workout as started (sets started_at).
+      description: Marks the workout as started (sets started_at). Use JWT token from
+        mobile login/signup.
       responses:
         '200':
           description: workout started
@@ -910,7 +966,7 @@ paths:
       security:
       - bearer_auth: []
       description: Marks the workout as completed. Workout must have been started
-        first.
+        first. Use JWT token from mobile login/signup.
       responses:
         '200':
           description: workout completed
@@ -997,7 +1053,9 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: 'JWT token for mobile authentication. Format: Bearer <token>'
+      description: 'JWT token for mobile authentication. To test: 1) Call /api/v1/mobile/login
+        or /api/v1/mobile/signup, 2) Copy the ''token'' from response, 3) Click ''Authorize''
+        button and paste token (without ''Bearer'' prefix)'
     csrf_token:
       type: apiKey
       name: X-CSRF-Token
@@ -1114,11 +1172,13 @@ components:
           type: string
         description:
           type: string
+          nullable: true
         workout_date:
           type: string
           format: date
         scheduled_time:
           type: string
+          nullable: true
           example: '09:00'
         workout_template_id:
           type: integer

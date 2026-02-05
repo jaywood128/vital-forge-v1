@@ -39,7 +39,7 @@ RSpec.configure do |config|
             type: :http,
             scheme: :bearer,
             bearerFormat: "JWT",
-            description: "JWT token for mobile authentication. Format: Bearer <token>"
+            description: "JWT token for mobile authentication. To test: 1) Call /api/v1/mobile/login or /api/v1/mobile/signup, 2) Copy the 'token' from response, 3) Click 'Authorize' button and paste token (without 'Bearer' prefix)"
           },
           csrf_token: {
             type: :apiKey,
@@ -120,9 +120,9 @@ RSpec.configure do |config|
             properties: {
               id: { type: :integer },
               name: { type: :string },
-              description: { type: :string },
+              description: { type: :string, nullable: true },
               workout_date: { type: :string, format: :date },
-              scheduled_time: { type: :string, example: "09:00" },
+              scheduled_time: { type: :string, nullable: true, example: "09:00" },
               workout_template_id: { type: :integer, nullable: true },
               started_at: { type: :string, format: :"date-time", nullable: true },
               completed_at: { type: :string, format: :"date-time", nullable: true },

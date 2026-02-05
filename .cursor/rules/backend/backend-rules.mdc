@@ -81,6 +81,59 @@ validates :email, presence: true,
 validates :email, presence: true
 ```
 
+### Phone Number Validation (US Only)
+For US phone numbers with flexible input and E.164 normalization:
+
+```ruby
+# Phone number validation (US only for now)
+# Accepts formats: (415) 555-1234, 415-555-1234, 4155551234, +1 415 555 1234
+# Normalizes to E.164 format: +14155551234
+validates :phone_number,
+  uniqueness: true,
+  allow_nil: true,
+  format: {
+    with: /\A[\d\s\-\(\)\+]+\z/,
+    message: "must contain only digits, spaces, dashes, parentheses, or +"
+  },
+  length: { minimum: 10, maximum: 20, allow_nil: true }
+
+# Normalization callback
+before_save :normalize_phone_number
+
+private
+
+def normalize_phone_number
+  return unless phone_number.present?
+  
+  # Remove all non-digits except leading +
+  digits = phone_number.gsub(/[^\d\+]/, '')
+  
+  # US-only support for now - normalize to E.164 format (+1XXXXXXXXXX)
+  # International support can be added in the future
+  if digits.match?(/\A\d{10}\z/)
+    # Exactly 10 digits, assume US number
+    self.phone_number = "+1#{digits}"
+  elsif digits.start_with?('+1') && digits.length == 12
+    # Already has +1 prefix with 10 digits
+    self.phone_number = digits
+  elsif digits.start_with?('+')
+    # Has + but not +1, keep as-is for now (future international support)
+    self.phone_number = digits
+  else
+    # Default to US: add +1 prefix
+    self.phone_number = "+1#{digits}"
+  end
+end
+```
+
+**Key Points:**
+- Optional field with `allow_nil: true`
+- Flexible input validation (accepts various formats)
+- Automatic normalization to E.164 format on save
+- US-only for now (international support can be added later)
+- Unique constraint at database and model level
+- Add `:phone` to `filter_parameters` for PII protection
+
 ### Associations
 - Always specify `dependent:` option on has_many/has_one
 - Use `inverse_of` for bidirectional associations
@@ -123,6 +176,27 @@ end
 - Use `respond_to` blocks for multiple formats
 - Never expose model IDs directly in URLs for sensitive resources
 
+### API Controller CSRF Protection (Dual Authentication)
+For API controllers that support both JWT (mobile) and session (web) authentication:
+
+```ruby
+class Api::V1::YourController < Api::V1::BaseController
+  include DualAuthenticatable
+  
+  # REQUIRED: Skip CSRF for JWT requests, enforce for session requests
+  skip_before_action :verify_authenticity_token, if: -> { request.headers["Authorization"].present? }
+  
+  # Your actions here...
+end
+```
+
+**Why this pattern:**
+- JWT requests have `Authorization: Bearer <token>` header → CSRF skipped (JWT itself provides protection)
+- Session requests have no Authorization header → CSRF enforced (protects against CSRF attacks)
+- Web users remain protected while mobile apps work seamlessly
+
+**ALWAYS add this line when creating new API controllers that use DualAuthenticatable**
+
 ## Authentication & Security
 
 ### Authentication Rules
@@ -135,6 +209,16 @@ end
 - CSRF (API): All non-GET API requests must include header `X-CSRF-Token` with the `CSRF-TOKEN` cookie value
 - Provide `GET /api/v1/csrf` for SPAs to seed/refresh the CSRF token before first POST
 
+### Dual Authentication Pattern (Session + JWT)
+VitalForge supports two authentication methods:
+1. **Session-based (Web)**: For Next.js frontend, uses cookies + CSRF tokens
+2. **JWT-based (Mobile)**: For iOS/Android apps, uses Bearer tokens
+
+**Controllers using DualAuthenticatable:**
+- Must include: `skip_before_action :verify_authenticity_token, if: -> { request.headers["Authorization"].present? }`
+- This allows JWT requests to bypass CSRF while keeping session requests protected
+- See "API Controller CSRF Protection" section above for implementation
+
 ### Devise + Warden (API)
 - JSON login: POST `/api/v1/session` with body `{ "user": { "email": "user@example.com", "password": "..." } }`
 - Controller should authenticate with `warden.authenticate(scope: :user)`; on success `sign_in(:user, user)` and return 200 with `{ data: { user: ... } }`, on failure return 401 `{ error: "Invalid email or password" }`
@@ -142,6 +226,13 @@ end
 - Current user: GET `/api/v1/current_user` returns 200 with `{ data: { user: ... } }` when signed in, otherwise 401
 - After login/logout, refresh CSRF token cookie so subsequent writes remain valid
 - HTML flows may use `valid_password?` and redirects; API must use Warden for consistent strategy behavior
+
+### JWT Authentication (Mobile)
+- Mobile login: POST `/api/v1/mobile/login` returns `{ data: { user, token, expires_at } }`
+- Mobile signup: POST `/api/v1/mobile/signup` returns `{ data: { user, token, expires_at, message } }`
+- Token format: `Authorization: Bearer <token>` header
+- Token lifetime: 24 hours (configurable in `AuthToken` service)
+- Mobile controllers inherit from `Api::V1::Mobile::BaseController` which uses JWT-only authentication
 
 ### Security Checklist
 - Sanitize user input (use strong parameters)
