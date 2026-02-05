@@ -6,6 +6,7 @@ module Api
       include DualAuthenticatable
 
       skip_before_action :require_api_authentication
+      skip_before_action :verify_authenticity_token, if: -> { request.headers["Authorization"].present? }
 
       before_action :set_user_preference, only: [ :show, :update ]
 

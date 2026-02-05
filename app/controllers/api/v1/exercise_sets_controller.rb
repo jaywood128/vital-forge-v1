@@ -6,6 +6,7 @@ module Api
       include DualAuthenticatable
 
       skip_before_action :require_api_authentication
+      skip_before_action :verify_authenticity_token, if: -> { request.headers["Authorization"].present? }
 
       # PATCH /api/v1/exercise_sets/:id
       def update
@@ -51,7 +52,7 @@ module Api
           workout_exercise_id: exercise_set.workout_exercise_id,
           set_number: exercise_set.set_number,
           reps: exercise_set.reps,
-          weight: exercise_set.weight,
+          weight: exercise_set.weight&.to_f,
           weight_unit: exercise_set.weight_unit,
           rest_after_seconds: exercise_set.rest_after_seconds,
           rpe: exercise_set.rpe,

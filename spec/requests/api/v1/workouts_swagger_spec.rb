@@ -44,15 +44,12 @@ RSpec.describe "API V1 Workouts", type: :request do
       tags "Workouts"
       produces "application/json"
       security [ { bearer_auth: [] } ]
-      description "Returns workouts for the authenticated user. Optionally filter by date range."
+      description "Returns workouts for the authenticated user. Optionally filter by date range. Use JWT token from mobile login/signup."
 
       parameter name: :start_date, in: :query, type: :string, format: :date, required: false,
         description: "Filter workouts on or after this date (YYYY-MM-DD)"
       parameter name: :end_date, in: :query, type: :string, format: :date, required: false,
         description: "Filter workouts on or before this date (YYYY-MM-DD)"
-
-      parameter name: :Authorization, in: :header, type: :string, required: true,
-        description: "JWT token: Bearer <token>"
 
       response "200", "workouts list" do
         schema type: :object,
@@ -87,7 +84,7 @@ RSpec.describe "API V1 Workouts", type: :request do
       tags "Workouts"
       produces "application/json"
       security [ { bearer_auth: [] } ]
-      description "Returns a single workout with exercises and sets."
+      description "Returns a single workout with exercises and sets. Use JWT token from mobile login/signup."
 
       response "200", "workout found" do
         schema type: :object,
@@ -127,7 +124,7 @@ RSpec.describe "API V1 Workouts", type: :request do
       tags "Workouts"
       produces "application/json"
       security [ { bearer_auth: [] } ]
-      description "Marks the workout as started (sets started_at)."
+      description "Marks the workout as started (sets started_at). Use JWT token from mobile login/signup."
 
       response "200", "workout started" do
         schema type: :object,
@@ -167,7 +164,7 @@ RSpec.describe "API V1 Workouts", type: :request do
       tags "Workouts"
       produces "application/json"
       security [ { bearer_auth: [] } ]
-      description "Marks the workout as completed. Workout must have been started first."
+      description "Marks the workout as completed. Workout must have been started first. Use JWT token from mobile login/signup."
 
       response "200", "workout completed" do
         schema type: :object,

@@ -6,7 +6,7 @@ class Api::V1::WorkoutsController < ApplicationController
 
   respond_to :json
   skip_before_action :require_authentication
-  skip_before_action :verify_authenticity_token, if: -> { authenticated_via_jwt? }
+  skip_before_action :verify_authenticity_token, if: -> { request.headers["Authorization"].present? }
 
   rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
 

@@ -86,10 +86,8 @@ RSpec.describe "API V1 Exercise Sets", type: :request do
       consumes "application/json"
       produces "application/json"
       security [ { bearer_auth: [] } ]
-      description "Updates an exercise set (reps, weight, completed, notes, etc.). Set must belong to the current user's workout."
+      description "Updates an exercise set (reps, weight, completed, notes, etc.). Set must belong to the current user's workout. Use the 'Authorize' button at the top right to set your JWT token."
 
-      parameter name: :Authorization, in: :header, type: :string, required: true,
-        description: "JWT token: Bearer <token>"
       parameter name: :payload, in: :body, schema: {
         type: :object,
         properties: {
