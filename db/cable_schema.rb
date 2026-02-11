@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_14_004735) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_04_021202) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -48,6 +48,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_14_004735) do
     t.index ["name"], name: "index_exercises_on_name", unique: true
   end
 
+  create_table "solid_cable_messages", force: :cascade do |t|
+    t.binary "channel", null: false
+    t.binary "payload", null: false
+    t.datetime "created_at", null: false
+    t.bigint "channel_hash", null: false
+    t.index ["channel"], name: "index_solid_cable_messages_on_channel"
+    t.index ["channel_hash"], name: "index_solid_cable_messages_on_channel_hash"
+    t.index ["created_at"], name: "index_solid_cable_messages_on_created_at"
+  end
+
   create_table "user_preferences", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "primary_goal"
@@ -74,8 +84,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_14_004735) do
     t.datetime "updated_at", null: false
     t.string "encrypted_password", default: "", null: false
     t.datetime "remember_created_at"
+    t.string "phone_number"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["password_reset_token"], name: "index_users_on_password_reset_token", unique: true
+    t.index ["phone_number"], name: "index_users_on_phone_number", unique: true
   end
 
   create_table "weekly_feedbacks", force: :cascade do |t|

@@ -76,7 +76,7 @@ Before you begin, ensure you have the following installed:
 
 - **Ruby** 3.2.6 (use RVM recommended)
 - **Rails** 8.0.2
-- **PostgreSQL** 14+
+- **Docker Desktop** (for PostgreSQL & Redis)
 - **Node.js** 18+ (for JavaScript tooling)
 - **Yarn** or **npm** (for JavaScript packages)
 - **Git**
@@ -85,24 +85,36 @@ Before you begin, ensure you have the following installed:
 ```bash
 ruby -v        # Should show: ruby 3.2.6
 rails -v       # Should show: Rails 8.0.2
-psql --version # Should show: psql 14.x or higher
+docker --version  # Docker Desktop must be running
 node -v        # Should show: v18.x or higher
 ```
 
 ### Quick Start (5 minutes)
+
+**One-liner setup:**
 ```bash
-# 1. Install dependencies
+docker-compose up -d db redis && bundle install && bin/rails db:prepare && bin/dev
+```
+
+Or step-by-step:
+```bash
+# 1. Start infrastructure (Postgres + Redis)
+docker-compose up -d db redis
+
+# 2. Install dependencies
 bundle install
 
-# 2. Setup database
-bin/rails db:create db:migrate db:seed
+# 3. Setup database
+bin/rails db:prepare
 
-# 3. Start server
+# 4. Start Rails server
 bin/dev
 
-# 4. Visit http://localhost:3000
-# 5. View API docs at http://localhost:3000/api-docs
+# 5. Visit http://localhost:3000
+# 6. View API docs at http://localhost:3000/api-docs
 ```
+
+**Why this approach?** We use Docker for PostgreSQL and Redis (no local installation needed), but run Rails natively for faster performance and better hot-reloading.
 
 **For detailed setup and architecture guide, see [SETUP_GUIDE.md](SETUP_GUIDE.md)** 🎓
 
@@ -114,29 +126,166 @@ git clone <repository-url>
 cd vital-forge-v1
 ```
 
-### 2. Install Dependencies
+### 2. Install Docker Desktop
+
+Download and install Docker Desktop for Mac:
+```bash
+# Option 1: Download from website
+# Visit: https://www.docker.com/products/docker-desktop/
+
+# Option 2: Install via Homebrew
+brew install --cask docker
+```
+
+Open Docker Desktop and wait for it to start (whale icon in menu bar should be steady).
+
+### 3. Set Up Environment Variables
+
+**Create your `.env` file:**
+```bash
+# Copy the example file
+cp .env.example .env
+
+# Edit with your actual credentials
+nano .env  # or use your preferred editor
+```
+
+**Required values:**
+- `DATABASE_PASSWORD` - Your PostgreSQL password (can be anything for local dev)
+- `OPENAI_API_KEY` - Get from https://platform.openai.com/api-keys
+- `HONEYBADGER_API_KEY` - Get from https://app.honeybadger.io/
+- `ENABLE_AI_FEATURES` - Set to `false` for local dev (prevents OpenAI costs)
+
+**Important:** Never commit your `.env` file! It's already in `.gitignore`.
+
+### 4. Start Infrastructure Services
+
+Start PostgreSQL and Redis in Docker:
+```bash
+# Start in background
+docker-compose up -d db redis
+
+# Check they're running
+docker-compose ps
+```
+
+You should see `db` and `redis` both running and healthy.
+
+### 5. Install Dependencies
 
 #### Ruby Dependencies
 ```bash
-# Ensure you're using Ruby 3.2.6
-source ~/.zshrc  # or source ~/.bashrc
-ruby -v
-
 # Install gems
 bundle install
 ```
 
-#### JavaScript Dependencies (Future)
+**One-liner for steps 5-7:**
 ```bash
-# When React is integrated
-yarn install
-# or
-npm install
+bundle install && bin/rails db:prepare && bin/dev
 ```
 
-### 3. Database Setup
+### 6. Database Setup
 
-#### Configure Database
+**Create and migrate databases:**
+```bash
+bin/rails db:prepare
+```
+
+This creates all Rails 8 databases (primary, cache, queue, cable) and runs migrations.
+
+**Seed sample data:**
+```bash
+bin/rails db:seed
+```
+
+### 7. Start the Development Server
+
+```bash
+# Start Rails (Puma web server + CSS/JS bundlers)
+bin/dev
+```
+
+Rails will be available at **http://localhost:3000**
+
+### 8. View API Documentation
+
+Visit **http://localhost:3000/api-docs** to see the interactive Swagger UI.
+
+---
+
+## 🔄 Daily Development Workflow
+
+**Quick start (if Docker services already running):**
+```bash
+bin/dev
+```
+
+**Full start (from stopped state):**
+```bash
+docker-compose up -d db redis && bin/dev
+```
+
+**Individual steps:**
+**Individual steps:**
+```bash
+# 1. Start Docker services (if not running)
+docker-compose up -d db redis
+
+# 2. Start Rails
+bin/dev
+
+# 3. In another terminal, start the Next.js UI (if needed)
+cd ../vital-forge-ui-v1
+npm run dev  # Runs on http://localhost:3001
+```
+
+### Stopping Work
+```bash
+# Stop Rails (Ctrl+C in terminal)
+
+# Stop Docker services (optional - they use minimal resources when idle)
+docker-compose stop
+
+# Or stop and remove containers
+docker-compose down
+```
+
+### Useful Commands
+```bash
+# View Docker logs
+docker-compose logs -f db redis
+
+# Restart Docker services (e.g., after .env changes)
+docker-compose restart db redis
+
+# Access Rails console
+bundle exec rails console
+
+# Run tests
+bundle exec rspec
+
+# Run migrations
+bin/rails db:migrate
+```
+
+---
+
+## 🐳 Docker vs Native
+
+### What Runs in Docker
+- ✅ PostgreSQL (port 5432)
+- ✅ Redis (port 6379)
+
+### What Runs Natively
+- ✅ Rails/Puma (better performance)
+- ✅ Sidekiq (background jobs)
+- ✅ Next.js UI (in separate repo)
+
+### Why This Approach?
+- **Faster development** - Native Rails has instant hot-reloading
+- **Less memory** - Only database services in Docker
+- **No local installs** - PostgreSQL and Redis managed by Docker
+- **Production parity** - Dockerfile exists for Railway deployment
 ```bash
 # Copy environment variables (if needed)
 cp .env.example .env

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_01_14_004735) do
+ActiveRecord::Schema[8.0].define(version: 2026_02_04_021202) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -74,8 +74,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_01_14_004735) do
     t.datetime "updated_at", null: false
     t.string "encrypted_password", default: "", null: false
     t.datetime "remember_created_at"
+    t.string "phone_number"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["password_reset_token"], name: "index_users_on_password_reset_token", unique: true
+    t.index ["phone_number"], name: "index_users_on_phone_number", unique: true
   end
 
   create_table "weekly_feedbacks", force: :cascade do |t|

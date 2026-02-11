@@ -52,7 +52,8 @@ Rails.application.configure do
 
   # Use async adapter for background jobs (in-process)
   # TODO: Re-enable solid_queue after configuring separate queue database
-  config.active_job.queue_adapter = :async
+  config.active_job.queue_adapter = :solid_queue
+  config.solid_queue.connects_to = { database: { writing: :queue } }
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.
