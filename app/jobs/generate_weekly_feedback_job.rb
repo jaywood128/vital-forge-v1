@@ -3,6 +3,11 @@ class GenerateWeeklyFeedbackJob
   sidekiq_options queue: :ai, retry: 3
 
   def perform(user_id)
+    unless ENV.fetch("ENABLE_AI_FEATURES", "false") == "true"
+      Rails.logger.info "Skipping AI feedback generation - AI features disabled"
+      return
+    end
+
     user = User.find_by(id: user_id)
     return unless user
 

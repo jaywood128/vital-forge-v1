@@ -3,6 +3,11 @@ class WeeklyProgressReportJob
   sidekiq_options queue: :default, retry: 2
 
   def perform
+    unless ENV.fetch("ENABLE_AI_FEATURES", "false") == "true"
+      Rails.logger.info "Skipping weekly progress report - AI features disabled (set ENABLE_AI_FEATURES=true to enable)"
+      return
+    end
+
     Rails.logger.info "Starting weekly progress report generation for all users"
 
     queued_emails = 0

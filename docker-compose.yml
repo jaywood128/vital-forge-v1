@@ -1,0 +1,125 @@
+# Docker Compose - Hybrid Development Setup
+# 
+# This setup runs PostgreSQL and Redis in Docker, while Rails runs natively on your machine.
+# This gives you the best of both worlds:
+#   - No need to install Postgres/Redis locally
+#   - Fast native Rails performance with instant hot-reloading
+#   - Production parity (Dockerfile exists for Railway deployment)
+#
+# Usage:
+#   docker-compose up -d db redis   # Start infrastructure only
+#   bin/dev                         # Start Rails natively
+#
+# The 'web' and 'sidekiq' services are included for optional full-Docker usage,
+# but are not needed for daily development.
+
+version: '3.9'
+
+services:
+  db:
+    image: postgres:16
+    volumes: 
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vital-forge-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - vital-forge-network
+
+  # web:
+  #   build: .
+  #   command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails server -b 0.0.0.0"
+  #   volumes:
+  #     - .:/rails
+  #     - bundle_cache:/usr/local/bundle
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   environment:
+  #     DATABASE_HOST: db
+  #     DATABASE_PORT: 5432
+  #     DATABASE_USERNAME: postgres
+  #     DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+  #     REDIS_URL: redis://redis:6379/0
+  #     RAILS_ENV: development
+  #     OPENAI_API_KEY: ${OPENAI_API_KEY}
+  #     HONEYBADGER_API_KEY: ${HONEYBADGER_API_KEY}
+  #     HONEYBADGER_ENV: ${HONEYBADGER_ENV}
+  #   networks:
+  #     - vital-forge-network
+  #   stdin_open: true
+  #   tty: true
+
+  sidekiq:
+    build: .
+    command: bundle exec sidekiq
+    volumes:
+      - .:/rails
+      - bundle_cache:/usr/local/bundle
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_HOST: db
+      DATABASE_PORT: 5432
+      DATABASE_USERNAME: postgres
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      REDIS_URL: redis://redis:6379/0
+      RAILS_ENV: development
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      HONEYBADGER_API_KEY: ${HONEYBADGER_API_KEY}
+      HONEYBADGER_ENV: ${HONEYBADGER_ENV}
+    networks:
+      - vital-forge-network
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@vitalforge.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - vital-forge-network
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:
+  bundle_cache:
+  redis_data:
+
+networks:
+  vital-forge-network:
+    driver: bridge

@@ -212,7 +212,7 @@ RSpec.describe DualAuthenticatable, type: :controller do
 
     it 'handles JWT with missing sub claim' do
       payload = { email: user.email, exp: 24.hours.from_now.to_i }
-      token = JWT.encode(payload, Rails.application.credentials.secret_key_base, 'HS256')
+      token = JWT.encode(payload, Rails.application.secret_key_base, 'HS256')
       request.headers['Authorization'] = "Bearer #{token}"
       get :index
 

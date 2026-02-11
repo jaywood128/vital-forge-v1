@@ -3,6 +3,12 @@
 require "swagger_helper"
 
 RSpec.describe "API V1 Weekly Feedbacks", type: :request do
+  before do
+    # Enable AI features for testing
+    allow(ENV).to receive(:fetch).and_call_original
+    allow(ENV).to receive(:fetch).with("ENABLE_AI_FEATURES", "false").and_return("true")
+  end
+
   let(:user) do
     User.create!(
       email: "feedback.swagger@example.com",
