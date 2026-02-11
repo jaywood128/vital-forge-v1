@@ -64,7 +64,7 @@ RSpec.describe AuthToken, type: :service do
 
       it 'returns nil for token without sub claim' do
         payload = { email: user.email, exp: 24.hours.from_now.to_i }
-        token = JWT.encode(payload, Rails.application.credentials.secret_key_base, 'HS256')
+        token = JWT.encode(payload, Rails.application.secret_key_base, 'HS256')
 
         expect(AuthToken.verify(token)).to be_nil
       end
@@ -148,7 +148,7 @@ RSpec.describe AuthToken, type: :service do
 
       it 'returns true for token without exp claim' do
         payload = { sub: user.id }
-        token = JWT.encode(payload, Rails.application.credentials.secret_key_base, 'HS256')
+        token = JWT.encode(payload, Rails.application.secret_key_base, 'HS256')
         expect(AuthToken.expired?(token)).to be true
       end
     end
@@ -186,7 +186,7 @@ RSpec.describe AuthToken, type: :service do
 
       it 'returns nil for token without sub claim' do
         payload = { email: user.email, exp: 24.hours.from_now.to_i }
-        token = JWT.encode(payload, Rails.application.credentials.secret_key_base, 'HS256')
+        token = JWT.encode(payload, Rails.application.secret_key_base, 'HS256')
 
         expect(AuthToken.user_id_from(token)).to be_nil
       end

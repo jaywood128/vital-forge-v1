@@ -95,7 +95,7 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
 
           # Verify token is valid JWT
           token = data["data"]["token"]
-          decoded = JWT.decode(token, Rails.application.credentials.secret_key_base, true, algorithm: "HS256")
+          decoded = JWT.decode(token, Rails.application.secret_key_base, true, algorithm: "HS256")
           expect(decoded[0]["sub"]).to be_present
         end
       end
@@ -231,7 +231,7 @@ RSpec.describe "API V1 Mobile Authentication", type: :request do
 
           # Verify token is valid JWT
           token = data["data"]["token"]
-          decoded = JWT.decode(token, Rails.application.credentials.secret_key_base, true, algorithm: "HS256")
+          decoded = JWT.decode(token, Rails.application.secret_key_base, true, algorithm: "HS256")
           expect(decoded[0]["sub"]).to eq(user.id)
         end
       end
