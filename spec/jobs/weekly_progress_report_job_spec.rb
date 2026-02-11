@@ -5,6 +5,9 @@ RSpec.describe WeeklyProgressReportJob, type: :job do
   # Clear Sidekiq job queue before each test
   before do
     Sidekiq::Worker.clear_all
+    # Enable AI features for testing
+    allow(ENV).to receive(:fetch).and_call_original
+    allow(ENV).to receive(:fetch).with("ENABLE_AI_FEATURES", "false").and_return("true")
   end
 
   # Include ActiveJob test helpers
