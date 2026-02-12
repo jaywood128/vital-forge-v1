@@ -197,6 +197,10 @@ Comprehensive documentation is available in the project:
 - **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - 📊 High-level overview of what we built and why
 - **[SETUP_GUIDE.md](SETUP_GUIDE.md)** - 🎓 Complete architecture guide, learning resources, and next steps
 - **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** - ⚡ Common commands and workflows (bookmark this!)
+- **[ENVIRONMENT_VARIABLES.md](ENVIRONMENT_VARIABLES.md)** - 🔑 Environment setup and secrets management
+
+### 🐳 Docker & Deployment
+- **[DOCKER_SETUP_MAC.md](DOCKER_SETUP_MAC.md)** - 🐳 Complete Docker setup guide for macOS
 
 ### 📚 Deep Dives
 - **[AUTH_ARCHITECTURE.md](AUTH_ARCHITECTURE.md)** - Web authentication system deep-dive

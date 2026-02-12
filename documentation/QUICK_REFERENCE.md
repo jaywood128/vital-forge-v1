@@ -1,23 +1,95 @@
 # 🚀 VitalForge Quick Reference
 
-**Common commands and workflows for daily development**
+**Common commands and workflows for daily development (Hybrid Docker + Native approach)**
+
+---
+
+## ⚡ First Time Setup
+
+**One-liner setup:**
+```bash
+docker-compose up -d db redis && bundle install && bin/rails db:prepare && bin/rails db:seed && bin/dev
+```
+
+Or step-by-step:
+```bash
+# 1. Install Docker Desktop (one-time)
+brew install --cask docker
+# Open Docker Desktop and wait for it to start
+
+# 2. Copy environment variables
+cp .env.example .env
+# Edit .env with your values (DATABASE_PASSWORD, API keys, etc.)
+
+# 3. Start Docker infrastructure
+docker-compose up -d db redis
+
+# 4. Install Ruby dependencies
+bundle install
+
+# 5. Create and migrate databases
+bin/rails db:prepare
+
+# 6. Seed sample data
+bin/rails db:seed
+
+# 7. Start Rails
+bin/dev
+
+# ✅ Visit http://localhost:3000
+```
 
 ---
 
 ## 🏃 Starting Development
 
 ```bash
-# Start Rails server (recommended)
+# 1. Start Docker infrastructure (if not running)
+docker-compose up -d db redis
+
+# 2. Start Rails server (native)
 bin/dev
 
-# Alternative: Standard Rails server
-bin/rails server
+# 3. In another terminal: Start UI (if needed)
+cd ../vital-forge-ui-v1
+npm run dev
 
-# Start Rails console
+# Rails console
 bundle exec rails c
 
-# Start PostgreSQL (if not running)
-brew services start postgresql@14
+# Check Docker services status
+docker-compose ps
+```
+
+---
+
+## 🐳 Docker Commands
+
+```bash
+# Start PostgreSQL + Redis only
+docker-compose up -d db redis
+
+# Stop Docker services
+docker-compose stop
+
+# Stop and remove containers
+docker-compose down
+
+# View logs
+docker-compose logs -f db redis
+
+# Restart after .env changes
+docker-compose restart db redis
+
+# Check container status
+docker-compose ps
+
+# Access PostgreSQL shell
+docker-compose exec db psql -U postgres
+
+# Optional: Start pgAdmin (database GUI)
+docker-compose --profile tools up -d pgadmin
+# Then visit http://localhost:5050
 ```
 
 ---
@@ -85,11 +157,50 @@ open coverage/index.html
 
 ## 💾 Database
 
+**Using Docker PostgreSQL** - The database runs in Docker, so no local Postgres installation needed!
+
+**One-liner for fresh database:**
 ```bash
-# Create database
-bin/rails db:create
+docker-compose up -d db redis && bin/rails db:prepare && bin/rails db:seed
+```
+
+**Individual commands:**
+```bash
+# Create database (first time only)
+bin/rails db:prepare
 
 # Run migrations
+bin/rails db:migrate
+
+# Rollback last migration
+bin/rails db:rollback
+
+# Seed database
+bin/rails db:seed
+
+# Reset database (DESTROYS ALL DATA!)
+bin/rails db:reset
+
+# Check database status
+bin/rails db:version
+
+# Access PostgreSQL shell (via Docker)
+docker-compose exec db psql -U postgres
+
+# List databases
+docker-compose exec db psql -U postgres -l
+
+# Connect to specific database
+docker-compose exec db psql -U postgres -d vital_forge_v1_development
+
+# Backup database
+docker-compose exec db pg_dump -U postgres vital_forge_v1_development > backup.sql
+
+# Restore database
+docker-compose exec -T db psql -U postgres vital_forge_v1_development < backup.sql
+```
+
+**Queue schema:** `db/queue_schema.rb` is auto-generated. To regenerate from the solid_queue gem: `bin/rails solid_queue:install` then `bin/rails db:migrate`. The queue DB uses `db/queue_migrate` (see `config/database.yml`).
 bin/rails db:migrate
 
 # Rollback last migration

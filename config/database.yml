@@ -33,6 +33,7 @@ development:
   queue:
     <<: *default
     database: vital_forge_v1_development_queue
+    migrations_paths: db/queue_migrate
   cable:
     <<: *default
     database: vital_forge_v1_development_cable
@@ -77,6 +78,7 @@ test:
   queue:
     <<: *default
     database: vital_forge_v1_test_queue
+    migrations_paths: db/queue_migrate
   cable:
     <<: *default
     database: vital_forge_v1_test_cable
