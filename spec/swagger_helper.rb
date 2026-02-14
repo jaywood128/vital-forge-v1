@@ -25,12 +25,12 @@ RSpec.configure do |config|
       paths: {},
       servers: [
         {
-          url: "http://localhost:3000",
-          description: "Development server"
+          url: "https://api.forge-fitness-journal.app",
+          description: "Production server"
         },
         {
-          url: "https://api.vitalforge.com",
-          description: "Production server"
+          url: "http://localhost:3000",
+          description: "Development server"
         }
       ],
       components: {
