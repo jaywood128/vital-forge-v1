@@ -10,7 +10,13 @@ Navigate to your Railway service (vital-forge-v1) → Variables tab and add:
 SWAGGER_ENABLED=true
 SWAGGER_BASIC_AUTH_USERNAME=<choose-secure-username>
 SWAGGER_BASIC_AUTH_PASSWORD=<generate-strong-password>
+ALLOWED_ORIGINS=https://api.forge-fitness-journal.app
 ```
+
+**Important Environment Variables**:
+- `SWAGGER_ENABLED`: Controls whether Swagger routes are mounted
+- `SWAGGER_BASIC_AUTH_USERNAME` & `SWAGGER_BASIC_AUTH_PASSWORD`: Credentials for Basic Auth
+- `ALLOWED_ORIGINS`: **Required for CORS** - allows Swagger UI to execute API requests. Set to your API domain.
 
 **Password Generation Tip**: Use a password manager to generate a strong random password (24+ characters with mixed case, numbers, and symbols).
 
@@ -121,6 +127,12 @@ Look for:
 **Issue**: Swagger UI loads but can't fetch spec
 - **Fix**: Check that `swagger/v1/swagger.yaml` exists in repo
 - **Fix**: Verify `/openapi/v1/swagger.yaml` is accessible with same credentials
+
+**Issue**: "Failed to fetch" / CORS errors when executing API requests in Swagger UI
+- **Symptom**: Swagger UI loads, but clicking "Execute" on any endpoint shows CORS error
+- **Fix**: Add `ALLOWED_ORIGINS=https://api.forge-fitness-journal.app` to Railway variables
+- **Explanation**: CORS middleware blocks cross-origin requests. Even though Swagger UI is on the same domain, it needs explicit CORS permission to execute API calls
+- **Verify**: Check browser console (F12) for CORS-related errors
 
 ## 6. Files Changed (For Reference)
 
