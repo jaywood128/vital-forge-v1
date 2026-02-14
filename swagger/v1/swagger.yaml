@@ -1043,10 +1043,10 @@ paths:
                   active_workout_id:
                     type: integer
 servers:
+- url: https://api.forge-fitness-journal.app
+  description: Production server
 - url: http://localhost:3000
   description: Development server
-- url: https://api.vitalforge.com
-  description: Production server
 components:
   securitySchemes:
     bearer_auth:
