@@ -80,10 +80,6 @@ end
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
-
-  # API documentation UI and routes
-  gem "rswag-api"
-  gem "rswag-ui"
 end
 
 gem "devise"
@@ -100,3 +96,7 @@ end
 ruby ">= 3.2.6"
 
 gem "honeybadger", "~> 6.2"
+
+# API documentation UI and routes (available in all environments when enabled)
+gem "rswag-api"
+gem "rswag-ui"

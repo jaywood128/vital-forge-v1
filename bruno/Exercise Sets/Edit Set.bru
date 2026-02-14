@@ -5,13 +5,18 @@ meta {
 }
 
 patch {
-  url: {{baseUrl}}/api/v1/exercise_sets/:id
+  url: {{baseUrl}}/exercise_sets/:id
   body: json
   auth: inherit
 }
 
 params:path {
-  id: 156
+  id: 1
+}
+
+headers {
+  X-CSRF-Token: {{csrfToken}}
+  _vital_forge_session: {{_vital_forge_session}}
 }
 
 body:json {
@@ -22,6 +27,10 @@ body:json {
       "weight_unit": "lbs"
     }
   }
+}
+
+vars:pre-request {
+  id: 1
 }
 
 settings {

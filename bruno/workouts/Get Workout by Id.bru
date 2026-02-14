@@ -5,13 +5,17 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/v1/workouts/:id
+  url: {{baseUrl}}/workouts/:id
   body: none
   auth: inherit
 }
 
 params:path {
-  id: 6
+  id: 1
+}
+
+vars:pre-request {
+  id: 1
 }
 
 settings {

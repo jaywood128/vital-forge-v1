@@ -16,6 +16,13 @@ module VitalForgeV1
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
+    # Add Swagger Basic Auth middleware when enabled
+    if ENV["SWAGGER_ENABLED"] == "true"
+      require_relative "../lib/middleware/swagger_auth"
+      require_relative "../lib/constraints/swagger_basic_auth"
+      config.middleware.use Middleware::SwaggerAuth
+    end
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files
