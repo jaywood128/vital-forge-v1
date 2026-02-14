@@ -12,7 +12,10 @@ if defined?(Rswag::Ui)
     c.swagger_endpoint "/openapi/v1/swagger.yaml", "VitalForge API V1"
 
     # Add Basic Auth in case your API is private
-    # c.basic_auth_enabled = true
-    # c.basic_auth_credentials 'username', 'password'
+    # This is a secondary layer - the primary auth is via middleware
+    if ENV["SWAGGER_BASIC_AUTH_USERNAME"].present? && ENV["SWAGGER_BASIC_AUTH_PASSWORD"].present?
+      c.basic_auth_enabled = true
+      c.basic_auth_credentials ENV["SWAGGER_BASIC_AUTH_USERNAME"], ENV["SWAGGER_BASIC_AUTH_PASSWORD"]
+    end
   end
 end
