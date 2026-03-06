@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_02_04_021202) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_05_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -58,6 +58,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_04_021202) do
     t.datetime "onboarding_completed_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "selected_workout_template_id"
+    t.index ["selected_workout_template_id"], name: "index_user_preferences_on_selected_workout_template_id"
     t.index ["user_id"], name: "index_user_preferences_on_user_id", unique: true
   end
 
@@ -169,6 +171,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_02_04_021202) do
 
   add_foreign_key "exercise_sets", "workout_exercises", on_delete: :cascade
   add_foreign_key "user_preferences", "users", on_delete: :cascade
+  add_foreign_key "user_preferences", "workout_templates", column: "selected_workout_template_id"
   add_foreign_key "weekly_feedbacks", "users"
   add_foreign_key "workout_exercises", "exercises"
   add_foreign_key "workout_exercises", "workouts", on_delete: :cascade

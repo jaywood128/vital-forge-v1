@@ -1,6 +1,7 @@
 class UserPreference < ApplicationRecord
   # Associations
   belongs_to :user
+  belongs_to :selected_workout_template, class_name: "WorkoutTemplate", optional: true
 
   # Validations
   validates :primary_goal, inclusion: {
