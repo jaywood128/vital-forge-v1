@@ -33,8 +33,10 @@ RSpec.describe "API V1 Exercise Sets", type: :request do
         source: "Test",
         is_active: true
       )
+      day = WorkoutTemplateDay.create!(workout_template: template, day_number: 1, name: "Day 1")
       wte = template.workout_template_exercises.create!(
         exercise: exercise,
+        workout_template_day: day,
         order_position: 1,
         recommended_sets: 3,
         recommended_reps: "8-12",
@@ -112,8 +114,10 @@ RSpec.describe "API V1 Exercise Sets", type: :request do
         source: "Test",
         is_active: true
       )
+      day = WorkoutTemplateDay.create!(workout_template: template, day_number: 1, name: "Day 1")
       wte = template.workout_template_exercises.create!(
         exercise: exercise,
+        workout_template_day: day,
         order_position: 1,
         recommended_sets: 3,
         recommended_reps: "5",
@@ -175,8 +179,10 @@ RSpec.describe "API V1 Exercise Sets", type: :request do
         source: "Test",
         is_active: true
       )
+      day = WorkoutTemplateDay.create!(workout_template: template, day_number: 1, name: "Day 1")
       wte = template.workout_template_exercises.create!(
         exercise: exercise,
+        workout_template_day: day,
         order_position: 1,
         recommended_sets: 1,
         recommended_reps: "5",
@@ -238,8 +244,10 @@ RSpec.describe "API V1 Exercise Sets", type: :request do
         source: "Test",
         is_active: true
       )
+      day = WorkoutTemplateDay.create!(workout_template: template, day_number: 1, name: "Day 1")
       wte = template.workout_template_exercises.create!(
         exercise: exercise,
+        workout_template_day: day,
         order_position: 1,
         recommended_sets: 1,
         recommended_reps: "5",
@@ -307,8 +315,10 @@ RSpec.describe "API V1 Exercise Sets", type: :request do
         source: "Test",
         is_active: true
       )
+      day = WorkoutTemplateDay.create!(workout_template: template, day_number: 1, name: "Day 1")
       wte = template.workout_template_exercises.create!(
         exercise: exercise,
+        workout_template_day: day,
         order_position: 1,
         recommended_sets: 3,
         recommended_reps: "5",

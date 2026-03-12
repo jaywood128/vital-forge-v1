@@ -59,9 +59,11 @@ RSpec.describe "API V1 Workout Templates", type: :request do
             source: "Swagger",
             is_active: true
           ).tap do |t|
+            day = WorkoutTemplateDay.create!(workout_template: t, day_number: 1, name: "Day 1")
             ex = Exercise.create!(name: "Template Ex", exercise_type: "Strength", equipment: "Barbell")
             t.workout_template_exercises.create!(
               exercise: ex,
+              workout_template_day: day,
               order_position: 1,
               recommended_sets: 4,
               recommended_reps: "6-8",
@@ -74,7 +76,7 @@ RSpec.describe "API V1 Workout Templates", type: :request do
         run_test! do |response|
           data = JSON.parse(response.body)
           expect(data["data"]["id"]).to eq(template.id)
-          expect(data["data"]["exercises"]).to be_an(Array)
+          expect(data["data"]["days"]).to be_an(Array)
         end
       end
 

@@ -23,10 +23,20 @@ RSpec.describe WorkoutTemplateStarter do
       )
     end
 
+    let(:exercise2) do
+      Exercise.create!(
+        name: "Squat",
+        exercise_type: "Strength",
+        muscle_group: "Legs",
+        equipment: "Barbell",
+        difficulty_level: "Intermediate"
+      )
+    end
+
     let(:workout_template) do
       WorkoutTemplate.create!(
         name: "Upper Body Routine",
-        goal_type: "physique",          # must be "physique" or "strength"
+        goal_type: "physique",
         difficulty_level: "Beginner",
         days_per_week: 4,
         estimated_duration_minutes: 45,
@@ -36,8 +46,26 @@ RSpec.describe WorkoutTemplateStarter do
       )
     end
 
-    let!(:template_exercise) do
-      workout_template.workout_template_exercises.create!(
+    let!(:day1) do
+      WorkoutTemplateDay.create!(
+        workout_template: workout_template,
+        day_number: 1,
+        name: "Push Day"
+      )
+    end
+
+    let!(:day2) do
+      WorkoutTemplateDay.create!(
+        workout_template: workout_template,
+        day_number: 2,
+        name: "Legs Day"
+      )
+    end
+
+    let!(:day1_exercise) do
+      WorkoutTemplateExercise.create!(
+        workout_template: workout_template,
+        workout_template_day: day1,
         exercise: exercise,
         order_position: 1,
         recommended_sets: 3,
@@ -47,10 +75,24 @@ RSpec.describe WorkoutTemplateStarter do
       )
     end
 
+    let!(:day2_exercise) do
+      WorkoutTemplateExercise.create!(
+        workout_template: workout_template,
+        workout_template_day: day2,
+        exercise: exercise2,
+        order_position: 1,
+        recommended_sets: 4,
+        recommended_reps: "5",
+        rest_seconds: 180,
+        notes: "Heavy sets"
+      )
+    end
+
     it "creates a workout with exercises and sets from the template" do
       workout = WorkoutTemplateStarter.new(
         user: user,
         workout_template: workout_template,
+        day_number: 1,
         scheduled_time: "07:30"
       ).call
 
@@ -72,5 +114,29 @@ RSpec.describe WorkoutTemplateStarter do
       expect(we.exercise_sets.map(&:reps)).to all(eq(8)) # parsed from "8-12"
       expect(we.exercise_sets.map(&:set_number)).to eq([ 1, 2, 3 ])
     end
+
+    it "creates workout exercises only for the specified day_number" do
+      workout = WorkoutTemplateStarter.new(
+        user: user,
+        workout_template: workout_template,
+        day_number: 2
+      ).call
+
+      expect(workout.workout_exercises.count).to eq(1)
+      expect(workout.workout_exercises.first.exercise_id).to eq(exercise2.id)
+      expect(workout.workout_exercises.first.exercise_sets.count).to eq(4)
+    end
+
+    it "defaults to day 1 when day_number not provided" do
+      workout = WorkoutTemplateStarter.new(
+        user: user,
+        workout_template: workout_template
+      ).call
+
+      expect(workout.workout_exercises.count).to eq(1)
+      expect(workout.workout_exercises.first.exercise_id).to eq(exercise.id)
+    end
+
+    xit "raises when day_number has no matching day record"
   end
 end

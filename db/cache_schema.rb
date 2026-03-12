@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_05_000001) do
+ActiveRecord::Schema[8.0].define(version: 2026_03_10_010332) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -122,6 +122,18 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_000001) do
     t.index ["workout_id"], name: "index_workout_exercises_on_workout_id"
   end
 
+  create_table "workout_template_days", force: :cascade do |t|
+    t.bigint "workout_template_id", null: false
+    t.integer "day_number", null: false
+    t.string "name", null: false
+    t.integer "estimated_duration_minutes"
+    t.string "muscle_focus"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["workout_template_id", "day_number"], name: "index_workout_template_days_on_template_and_day", unique: true
+    t.index ["workout_template_id"], name: "index_workout_template_days_on_workout_template_id"
+  end
+
   create_table "workout_template_exercises", force: :cascade do |t|
     t.bigint "workout_template_id", null: false
     t.bigint "exercise_id", null: false
@@ -132,7 +144,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_000001) do
     t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "workout_template_day_id", null: false
     t.index ["exercise_id"], name: "index_workout_template_exercises_on_exercise_id"
+    t.index ["workout_template_day_id"], name: "index_workout_template_exercises_on_workout_template_day_id"
     t.index ["workout_template_id", "order_position"], name: "index_template_exercises_on_template_and_order"
     t.index ["workout_template_id"], name: "index_workout_template_exercises_on_workout_template_id"
   end
@@ -186,7 +200,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_05_000001) do
   add_foreign_key "weekly_feedbacks", "users"
   add_foreign_key "workout_exercises", "exercises"
   add_foreign_key "workout_exercises", "workouts", on_delete: :cascade
+  add_foreign_key "workout_template_days", "workout_templates"
   add_foreign_key "workout_template_exercises", "exercises"
+  add_foreign_key "workout_template_exercises", "workout_template_days"
   add_foreign_key "workout_template_exercises", "workout_templates", on_delete: :cascade
   add_foreign_key "workouts", "users", on_delete: :cascade
   add_foreign_key "workouts", "workout_templates"
