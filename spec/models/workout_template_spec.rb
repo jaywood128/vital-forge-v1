@@ -123,11 +123,13 @@ RSpec.describe WorkoutTemplate, type: :model do
   describe '#exercise_count' do
     it 'returns the number of exercises in the template' do
       template = WorkoutTemplate.create!(name: 'Test', goal_type: 'physique', days_per_week: 3)
+      day = WorkoutTemplateDay.create!(workout_template: template, day_number: 1, name: 'Day 1')
       exercise1 = Exercise.create!(name: 'Exercise 1', exercise_type: 'Strength', equipment: 'Barbell')
       exercise2 = Exercise.create!(name: 'Exercise 2', exercise_type: 'Strength', equipment: 'Dumbbells')
 
       WorkoutTemplateExercise.create!(
         workout_template: template,
+        workout_template_day: day,
         exercise: exercise1,
         order_position: 1,
         recommended_sets: 3,
@@ -135,6 +137,7 @@ RSpec.describe WorkoutTemplate, type: :model do
       )
       WorkoutTemplateExercise.create!(
         workout_template: template,
+        workout_template_day: day,
         exercise: exercise2,
         order_position: 2,
         recommended_sets: 3,

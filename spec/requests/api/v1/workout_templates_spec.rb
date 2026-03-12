@@ -7,6 +7,7 @@ RSpec.describe 'API V1 Workout Templates', type: :request do
   before(:each) do
     # Clean database before each test
     WorkoutTemplateExercise.delete_all
+    WorkoutTemplateDay.delete_all
     WorkoutTemplate.delete_all
     Exercise.delete_all
   end
@@ -14,6 +15,7 @@ RSpec.describe 'API V1 Workout Templates', type: :request do
   after(:all) do
     # Clean up after all tests
     WorkoutTemplateExercise.delete_all
+    WorkoutTemplateDay.delete_all
     WorkoutTemplate.delete_all
     Exercise.delete_all
   end
@@ -115,9 +117,14 @@ RSpec.describe 'API V1 Workout Templates', type: :request do
       )
     end
 
+    let!(:template1_day) do
+      WorkoutTemplateDay.create!(workout_template: template1, day_number: 1, name: 'Day 1')
+    end
+
     let!(:template_exercise1) do
       WorkoutTemplateExercise.create!(
         workout_template: template1,
+        workout_template_day: template1_day,
         exercise: exercise1,
         order_position: 1,
         recommended_sets: 4,
@@ -130,6 +137,7 @@ RSpec.describe 'API V1 Workout Templates', type: :request do
     let!(:template_exercise2) do
       WorkoutTemplateExercise.create!(
         workout_template: template1,
+        workout_template_day: template1_day,
         exercise: exercise2,
         order_position: 2,
         recommended_sets: 3,
@@ -146,15 +154,16 @@ RSpec.describe 'API V1 Workout Templates', type: :request do
 
       expect(json['data']['id']).to eq(template1.id)
       expect(json['data']['name']).to eq('Push Pull Legs')
-      expect(json['data']['exercises']).to be_an(Array)
-      expect(json['data']['exercises'].length).to eq(2)
+      expect(json['data']['days']).to be_an(Array)
+      exercises = json['data']['days'].flat_map { |d| d['exercises'] }
+      expect(exercises.length).to eq(2)
     end
 
     it 'returns exercises in correct order' do
       get "/api/v1/workout_templates/#{template1.id}", as: :json
 
       json = JSON.parse(response.body)
-      exercises = json['data']['exercises']
+      exercises = json['data']['days'].flat_map { |d| d['exercises'] }
 
       expect(exercises.first['exercise']['name']).to eq('Bench Press')
       expect(exercises.first['order_position']).to eq(1)
@@ -166,7 +175,7 @@ RSpec.describe 'API V1 Workout Templates', type: :request do
       get "/api/v1/workout_templates/#{template1.id}", as: :json
 
       json = JSON.parse(response.body)
-      exercise_entry = json['data']['exercises'].first
+      exercise_entry = json['data']['days'].flat_map { |d| d['exercises'] }.first
 
       expect(exercise_entry).to have_key('id')
       expect(exercise_entry).to have_key('exercise')

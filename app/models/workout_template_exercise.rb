@@ -1,6 +1,7 @@
 class WorkoutTemplateExercise < ApplicationRecord
   # Associations
   belongs_to :workout_template
+  belongs_to :workout_template_day
   belongs_to :exercise
 
   # Validations

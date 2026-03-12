@@ -17,10 +17,15 @@ headers {
 body:json {
   {
     "user": {
-      "email": "jaywood128@gmail.com",
+      "email": "{{email}}",
       "password": "{{password}}"
     }
   }
+}
+
+vars:pre-request {
+  email: jaywood128@gmail.com
+  password: password123
 }
 
 settings {

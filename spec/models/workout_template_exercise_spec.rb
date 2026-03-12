@@ -106,8 +106,10 @@ RSpec.describe WorkoutTemplateExercise, type: :model do
 
   describe 'default scope' do
     it 'orders by order_position' do
+      day = WorkoutTemplateDay.create!(workout_template: template, day_number: 1, name: 'Day 1')
       wte1 = WorkoutTemplateExercise.create!(
         workout_template: template,
+        workout_template_day: day,
         exercise: exercise,
         order_position: 2,
         recommended_sets: 3,
@@ -116,6 +118,7 @@ RSpec.describe WorkoutTemplateExercise, type: :model do
       exercise2 = Exercise.create!(name: 'Exercise 2', exercise_type: 'Strength', equipment: 'Dumbbells')
       wte2 = WorkoutTemplateExercise.create!(
         workout_template: template,
+        workout_template_day: day,
         exercise: exercise2,
         order_position: 1,
         recommended_sets: 3,

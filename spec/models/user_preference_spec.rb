@@ -11,10 +11,28 @@ RSpec.describe UserPreference, type: :model do
     )
   end
 
+  let(:workout_template) do
+    WorkoutTemplate.create!(
+      name: 'Test Programme',
+      goal_type: 'physique',
+      days_per_week: 4
+    )
+  end
+
   describe 'associations' do
     it 'belongs to user' do
       preference = UserPreference.new(user: user)
       expect(preference.user).to eq(user)
+    end
+
+    it 'optionally belongs to a workout template' do
+      preference = UserPreference.create!(user: user, selected_workout_template: workout_template)
+      expect(preference.selected_workout_template).to eq(workout_template)
+    end
+
+    it 'is valid without a selected workout template' do
+      preference = UserPreference.new(user: user)
+      expect(preference).to be_valid
     end
   end
 
