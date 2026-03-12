@@ -1,5 +1,6 @@
 class WorkoutTemplate < ApplicationRecord
   # Associations
+  has_many :workout_template_days, -> { order(:day_number) }, dependent: :destroy
   has_many :workout_template_exercises, -> { order(:order_position) }, dependent: :destroy
   has_many :exercises, through: :workout_template_exercises
 

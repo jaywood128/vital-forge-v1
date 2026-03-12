@@ -9,12 +9,22 @@ RSpec.describe 'API V1 User Preferences', type: :request do
     # Clean database before each test
     UserPreference.delete_all
     User.delete_all
+    WorkoutTemplate.delete_all
   end
 
   after(:all) do
     # Clean up after all tests
     UserPreference.delete_all
     User.delete_all
+    WorkoutTemplate.delete_all
+  end
+
+  let!(:workout_template) do
+    WorkoutTemplate.create!(
+      name: 'PPL Programme',
+      goal_type: 'physique',
+      days_per_week: 4
+    )
   end
 
   let!(:user) do
@@ -230,6 +240,31 @@ RSpec.describe 'API V1 User Preferences', type: :request do
           expect(json['errors']).to be_present
         end
       end
+
+      context 'when preference already exists (upsert)' do
+        let!(:existing_preference) do
+          UserPreference.create!(
+            user: user,
+            primary_goal: 'physique',
+            training_days_per_week: 3,
+            experience_level: 'Beginner'
+          )
+        end
+
+        it 'updates existing preference and returns 200' do
+          expect do
+            post api_v1_user_preference_path,
+                 params: { user_preference: { primary_goal: 'strength', training_days_per_week: 5, experience_level: 'Advanced' } },
+                 headers: { 'X-CSRF-Token' => @csrf_token },
+                 as: :json
+          end.not_to change(UserPreference, :count)
+
+          expect(response).to have_http_status(:ok)
+          json = JSON.parse(response.body)
+          expect(json['data']['primary_goal']).to eq('strength')
+          expect(json['data']['training_days_per_week']).to eq(5)
+        end
+      end
     end
 
     context 'with JWT authentication (mobile client)' do
@@ -314,6 +349,18 @@ RSpec.describe 'API V1 User Preferences', type: :request do
           expect(json['data']['training_days_per_week']).to eq(5)
           expect(json['data']['preferred_workout_duration']).to eq(60)
           expect(json['data']['primary_goal']).to eq('physique') # unchanged
+        end
+
+        it 'saves selected_workout_template_id and returns template name' do
+          patch api_v1_user_preference_path,
+                params: { user_preference: { selected_workout_template_id: workout_template.id } },
+                headers: { 'X-CSRF-Token' => @csrf_token },
+                as: :json
+
+          expect(response).to have_http_status(:ok)
+          json = JSON.parse(response.body)
+          expect(json['data']['selected_workout_template_id']).to eq(workout_template.id)
+          expect(json['data']['selected_workout_template_name']).to eq('PPL Programme')
         end
       end
 

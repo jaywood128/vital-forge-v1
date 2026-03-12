@@ -63,6 +63,7 @@ class Api::V1::WorkoutsController < ApplicationController
     workout = WorkoutTemplateStarter.new(
       user: current_user,
       workout_template: template,
+      day_number: params[:day_number]&.to_i || 1,
       scheduled_time: params[:scheduled_time]
     ).call
 

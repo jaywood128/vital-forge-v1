@@ -56,7 +56,7 @@ module Api
 
       def set_workout_template
         @workout_template = WorkoutTemplate.active
-          .includes(workout_template_exercises: :exercise)
+          .includes(workout_template_days: { workout_template_exercises: :exercise })
           .find(params[:id])
       rescue ActiveRecord::RecordNotFound
         render json: { error: "Workout template not found" }, status: :not_found
@@ -115,25 +115,34 @@ module Api
           source: template.source,
           has_active_workout: has_active,
           active_workout_id: active_workout_id,
-          exercises: template.workout_template_exercises.map do |wte|
+          days: template.workout_template_days.map do |day|
             {
-              id: wte.id,
-              exercise_id: wte.exercise_id,
-              order_position: wte.order_position,
-              recommended_sets: wte.recommended_sets,
-              recommended_reps: wte.recommended_reps,
-              rest_seconds: wte.rest_seconds,
-              notes: wte.notes,
-              exercise: {
-                id: wte.exercise.id,
-                name: wte.exercise.name,
-                description: wte.exercise.description,
-                exercise_type: wte.exercise.exercise_type,
-                equipment: wte.exercise.equipment,
-                muscle_group: wte.exercise.muscle_group,
-                difficulty_level: wte.exercise.difficulty_level,
-                instructions: wte.exercise.instructions
-              }
+              id: day.id,
+              day_number: day.day_number,
+              name: day.name,
+              estimated_duration_minutes: day.estimated_duration_minutes,
+              muscle_focus: day.muscle_focus,
+              exercises: day.workout_template_exercises.map do |wte|
+                {
+                  id: wte.id,
+                  exercise_id: wte.exercise_id,
+                  order_position: wte.order_position,
+                  recommended_sets: wte.recommended_sets,
+                  recommended_reps: wte.recommended_reps,
+                  rest_seconds: wte.rest_seconds,
+                  notes: wte.notes,
+                  exercise: {
+                    id: wte.exercise.id,
+                    name: wte.exercise.name,
+                    description: wte.exercise.description,
+                    exercise_type: wte.exercise.exercise_type,
+                    equipment: wte.exercise.equipment,
+                    muscle_group: wte.exercise.muscle_group,
+                    difficulty_level: wte.exercise.difficulty_level,
+                    instructions: wte.exercise.instructions
+                  }
+                }
+              end
             }
           end,
           created_at: template.created_at,

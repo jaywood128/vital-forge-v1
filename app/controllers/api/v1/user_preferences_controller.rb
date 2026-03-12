@@ -19,9 +19,10 @@ module Api
         end
       end
 
-      # POST /api/v1/user_preference
+      # POST /api/v1/user_preference — upserts so re-running onboarding doesn't fail
       def create
-        @user_preference = current_user.build_user_preference(user_preference_params)
+        @user_preference = current_user.user_preference || current_user.build_user_preference
+        @user_preference.assign_attributes(user_preference_params)
 
         # Auto-complete onboarding if primary_goal and training_days are set
         if @user_preference.primary_goal.present? && @user_preference.training_days_per_week.present?
@@ -29,8 +30,11 @@ module Api
           @user_preference.onboarding_completed_at = Time.current
         end
 
+        previously_existed = @user_preference.persisted?
+
         if @user_preference.save
-          render json: { data: serialize_preference(@user_preference) }, status: :created
+          status = previously_existed ? :ok : :created
+          render json: { data: serialize_preference(@user_preference) }, status: status
         else
           render json: { errors: @user_preference.errors }, status: :unprocessable_entity
         end
@@ -56,7 +60,8 @@ module Api
           :primary_goal,
           :training_days_per_week,
           :preferred_workout_duration,
-          :experience_level
+          :experience_level,
+          :selected_workout_template_id
         )
       end
 
@@ -70,6 +75,8 @@ module Api
           experience_level: preference.experience_level,
           onboarding_completed: preference.onboarding_completed,
           onboarding_completed_at: preference.onboarding_completed_at,
+          selected_workout_template_id: preference.selected_workout_template_id,
+          selected_workout_template_name: preference.selected_workout_template&.name,
           created_at: preference.created_at,
           updated_at: preference.updated_at
         }
