@@ -3,9 +3,10 @@
 # Service object to create a workout from a template
 # Converts a workout template into an active workout with exercises and empty sets
 class WorkoutTemplateStarter
-  def initialize(user:, workout_template:, scheduled_time: nil)
+  def initialize(user:, workout_template:, day_number: 1, scheduled_time: nil)
     @user = user
     @template = workout_template
+    @day_number = day_number
     @scheduled_time = scheduled_time
   end
 
@@ -33,7 +34,8 @@ class WorkoutTemplateStarter
   end
 
   def create_exercises_and_sets(workout)
-    @template.workout_template_exercises.each do |template_exercise|
+    day = @template.workout_template_days.find_by!(day_number: @day_number)
+    day.workout_template_exercises.each do |template_exercise|
       workout_exercise = workout.workout_exercises.create!(
         exercise_id: template_exercise.exercise_id,
         order_position: template_exercise.order_position,

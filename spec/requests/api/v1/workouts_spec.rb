@@ -307,8 +307,10 @@ RSpec.describe 'API V1 Workouts', type: :request do
         source: 'Test',
         is_active: true
       ).tap do |t|
+        day = WorkoutTemplateDay.create!(workout_template: t, day_number: 1, name: 'Day 1')
         t.workout_template_exercises.create!(
           exercise: exercise,
+          workout_template_day: day,
           order_position: 1,
           recommended_sets: 3,
           recommended_reps: '8-12',
