@@ -36,7 +36,7 @@ class User < ApplicationRecord
     length: { minimum: 10, maximum: 20, allow_nil: true }
 
   # Normalize phone number before saving
-  before_save :normalize_phone_number
+  before_validation :normalize_phone_number
 
   validates :first_name, :last_name, presence: true
 
