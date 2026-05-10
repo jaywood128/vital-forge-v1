@@ -29,7 +29,7 @@ class WorkoutTemplateStarter
       workout_type: map_goal_to_workout_type(@template.goal_type),
       workout_template_id: @template.id,
       completed: false,
-      started_at: nil # Not started yet, just created
+      started_at: Time.current
     )
   end
 
