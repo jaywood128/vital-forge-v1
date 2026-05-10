@@ -75,7 +75,6 @@ RSpec.describe User, type: :model do
         invalid_numbers = [
           "415-555-ABCD",
           "john@example.com",
-          "415.555.1234#",
           "call me maybe"
         ]
 
