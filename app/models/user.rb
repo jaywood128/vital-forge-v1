@@ -102,8 +102,8 @@ class User < ApplicationRecord
       # Has + but not +1, keep as-is for now (future international support)
       self.phone_number = digits
     else
-      # Default to US: add +1 prefix
-      self.phone_number = "+1#{digits}"
+      # Unrecognised format — store stripped digits so length/format validators can reject it
+      self.phone_number = digits
     end
   end
 end
