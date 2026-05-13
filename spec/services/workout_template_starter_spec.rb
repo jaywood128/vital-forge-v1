@@ -100,7 +100,7 @@ RSpec.describe WorkoutTemplateStarter do
       expect(workout.user).to eq(user)
       expect(workout.workout_template_id).to eq(workout_template.id)
       expect(workout.completed).to be(false)
-      expect(workout.started_at).to be_nil
+      expect(workout.started_at).to be_present
       expect(workout.workout_type).to eq("Strength") # goal_type mapping
       expect(workout.scheduled_time.strftime("%H:%M")).to eq("07:30")
 
