@@ -35,13 +35,10 @@ class User < ApplicationRecord
     },
     length: { minimum: 10, maximum: 20, allow_nil: true }
 
-  # Normalize phone number before saving
-  before_validation :normalize_phone_number
-
   validates :first_name, :last_name, presence: true
 
-  # Normalize email to lowercase before saving
-  before_save :normalize_email
+  # Normalize email and phone number before saving (after validation)
+  before_save :normalize_email, :normalize_phone_number
 
   # Security constants
   MAX_LOGIN_ATTEMPTS = 5
