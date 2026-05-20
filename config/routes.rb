@@ -51,6 +51,8 @@ Rails.application.routes.draw do
         post "login", to: "sessions#create"
         delete "logout", to: "sessions#destroy"
         get "current_user", to: "current_users#show"
+        post "forgot_password", to: "password_resets#create"
+        post "reset_password", to: "password_resets#update"
       end
 
       # Shared resources (support both session and JWT authentication)
