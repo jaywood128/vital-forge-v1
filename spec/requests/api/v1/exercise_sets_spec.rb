@@ -4,9 +4,38 @@ require "rails_helper"
 
 RSpec.describe "API V1 Exercise Sets", type: :request do
   before(:each) do
-    # Clean database before each test
     WorkoutTemplateExercise.delete_all
     WorkoutTemplate.delete_all
+  end
+
+  def create_full_set_graph(user:, exercise:, weight: 135, reps: 10, completed: false)
+    template = WorkoutTemplate.create!(
+      name: "PR Test Template", goal_type: "strength",
+      difficulty_level: "Beginner", days_per_week: 3,
+      estimated_duration_minutes: 45, total_exercises: 1,
+      source: "Test", is_active: true
+    )
+    day = WorkoutTemplateDay.create!(
+      workout_template: template, day_number: 1, name: "Day 1"
+    )
+    template.workout_template_exercises.create!(
+      exercise: exercise, workout_template_day: day,
+      order_position: 1, recommended_sets: 3,
+      recommended_reps: "8-12", rest_seconds: 90
+    )
+    workout = user.workouts.create!(
+      name: template.name, workout_date: Date.current,
+      workout_template_id: template.id
+    )
+    workout_exercise = workout.workout_exercises.create!(
+      exercise: exercise, order_position: 1,
+      rest_between_sets: 90, completed: false
+    )
+    exercise_set = workout_exercise.exercise_sets.create!(
+      set_number: 1, reps: reps, weight: weight,
+      weight_unit: "lbs", completed: completed
+    )
+    [ workout, workout_exercise, exercise_set ]
   end
 
   describe "PATCH /api/v1/exercise_sets/:id" do
@@ -284,6 +313,85 @@ RSpec.describe "API V1 Exercise Sets", type: :request do
       expect(response).to have_http_status(:unprocessable_entity)
       json = JSON.parse(response.body)
       expect(json["errors"]).to be_present
+    end
+
+    describe "PR detection in response" do
+      let(:pr_user) do
+        User.create!(
+          email: "pr_test@example.com", password: "Password123!",
+          first_name: "PR", last_name: "Test"
+        )
+      end
+      let(:pr_exercise) do
+        Exercise.create!(
+          name: "PR Bench Press", exercise_type: "Strength",
+          muscle_group: "Chest", equipment: "Barbell"
+        )
+      end
+      let(:jwt_token) { AuthToken.for_user(pr_user) }
+
+      it "returns is_new_pr: true when the set beats the stored best" do
+        prior_set = create_full_set_graph(
+          user: pr_user, exercise: pr_exercise, weight: 135, reps: 10, completed: true
+        ).last
+        PersonalRecord.create!(
+          user: pr_user, exercise: pr_exercise, exercise_set: prior_set,
+          estimated_1rm: 180.5, weight: 135.0, reps: 10, recorded_at: 1.week.ago
+        )
+        _, _, set = create_full_set_graph(user: pr_user, exercise: pr_exercise, weight: 185, reps: 5)
+
+        patch "/api/v1/exercise_sets/#{set.id}",
+              params: { exercise_set: { weight: 185, reps: 5, completed: true } },
+              headers: { "Authorization" => "Bearer #{jwt_token}" },
+              as: :json
+
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+        expect(json.dig("personal_record", "is_new_pr")).to be(true)
+      end
+
+      it "returns is_new_pr: true when no prior record exists (first set ever)" do
+        _, _, set = create_full_set_graph(user: pr_user, exercise: pr_exercise, weight: 135, reps: 10)
+
+        patch "/api/v1/exercise_sets/#{set.id}",
+              params: { exercise_set: { weight: 135, reps: 10, completed: true } },
+              headers: { "Authorization" => "Bearer #{jwt_token}" },
+              as: :json
+
+        json = JSON.parse(response.body)
+        expect(json.dig("personal_record", "is_new_pr")).to be(true)
+      end
+
+      it "returns is_new_pr: false when the set does not beat the stored best" do
+        _, _, prior_set = create_full_set_graph(
+          user: pr_user, exercise: pr_exercise, weight: 225, reps: 8, completed: true
+        )
+        PersonalRecord.create!(
+          user: pr_user, exercise: pr_exercise, exercise_set: prior_set,
+          estimated_1rm: 300.0, weight: 225.0, reps: 8, recorded_at: 1.week.ago
+        )
+        _, _, weaker_set = create_full_set_graph(user: pr_user, exercise: pr_exercise, weight: 135, reps: 10)
+
+        patch "/api/v1/exercise_sets/#{weaker_set.id}",
+              params: { exercise_set: { weight: 135, reps: 10, completed: true } },
+              headers: { "Authorization" => "Bearer #{jwt_token}" },
+              as: :json
+
+        json = JSON.parse(response.body)
+        expect(json.dig("personal_record", "is_new_pr")).to be(false)
+      end
+
+      it "returns is_new_pr: false for a bodyweight set (weight nil)" do
+        _, _, set = create_full_set_graph(user: pr_user, exercise: pr_exercise, weight: nil, reps: 10)
+
+        patch "/api/v1/exercise_sets/#{set.id}",
+              params: { exercise_set: { reps: 10, completed: true } },
+              headers: { "Authorization" => "Bearer #{jwt_token}" },
+              as: :json
+
+        json = JSON.parse(response.body)
+        expect(json.dig("personal_record", "is_new_pr")).to be(false)
+      end
     end
 
     it "returns 404 when updating another user's set" do

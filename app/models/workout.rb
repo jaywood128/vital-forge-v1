@@ -96,11 +96,4 @@ class Workout < ApplicationRecord
     return nil unless started_at && completed_at
     ((completed_at - started_at) / 60).round
   end
-
-  private
-
-  def calculate_duration
-    return nil unless started_at && completed_at
-    ((completed_at - started_at) / 60).round
-  end
 end

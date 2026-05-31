@@ -455,16 +455,15 @@ RSpec.describe 'API V1 Workouts', type: :request do
       expect(json['error']).to eq('Workout has not been started')
     end
 
-    it 'returns 422 when workout is already completed (JWT)' do
-      workout.update!(completed: true, completed_at: 1.minute.ago)
+    it 'returns 200 when workout was already auto-completed by callbacks (JWT)' do
+      workout.update!(completed: true, completed_at: 1.minute.ago, duration_minutes: 30)
 
       patch "/api/v1/workouts/#{workout.id}/complete",
             headers: { 'Authorization' => "Bearer #{jwt_token}" },
             as: :json
 
-      expect(response).to have_http_status(:unprocessable_entity)
-      json = JSON.parse(response.body)
-      expect(json['error']).to eq('Workout already completed')
+      expect(response).to have_http_status(:ok)
+      expect(JSON.parse(response.body)['workout']['completed']).to be(true)
     end
 
     it 'marks workout complete for the user (JWT)' do
@@ -490,6 +489,107 @@ RSpec.describe 'API V1 Workouts', type: :request do
             as: :json
 
       expect(response).to have_http_status(:not_found)
+    end
+
+    context 'PR persistence' do
+      let(:pr_user) { User.create!(email: 'pr@example.com', password: 'Password123!', first_name: 'PR', last_name: 'User') }
+      let(:pr_token) { AuthToken.for_user(pr_user) }
+      let(:exercise) do
+        Exercise.create!(
+          name: 'Squat', muscle_group: 'Legs',
+          equipment: 'Barbell', exercise_type: 'Strength'
+        )
+      end
+
+      def build_workout_with_set(weight:, reps:, completed: true)
+        w = pr_user.workouts.create!(
+          name: 'PR Workout', workout_date: Date.current,
+          workout_type: 'Strength', started_at: 10.minutes.ago, completed: false
+        )
+        we = w.workout_exercises.create!(exercise: exercise, order_position: 1, completed: false)
+        # Create incomplete first, then bypass callbacks to set completed — creating with
+        # completed: true triggers the after_save cascade that auto-completes the workout
+        # before the PATCH request fires.
+        es = we.exercise_sets.create!(set_number: 1, weight: weight, reps: reps, weight_unit: 'lbs', completed: false)
+        es.update_column(:completed, true) if completed
+        w
+      end
+
+      it 'creates a PersonalRecord for each completed weighted set on completion' do
+        w = build_workout_with_set(weight: 225, reps: 5)
+
+        expect {
+          patch "/api/v1/workouts/#{w.id}/complete",
+                headers: { 'Authorization' => "Bearer #{pr_token}" }, as: :json
+        }.to change(PersonalRecord, :count).by(1)
+
+        pr = PersonalRecord.last
+        expect(pr.user_id).to eq(pr_user.id)
+        expect(pr.exercise_id).to eq(exercise.id)
+        expect(pr.weight).to eq(225)
+        expect(pr.reps).to eq(5)
+        expect(pr.estimated_1rm).to be > 225
+      end
+
+      it 'does not create a PR when the new 1RM does not beat the existing best' do
+        existing_set = nil
+        w_old = build_workout_with_set(weight: 315, reps: 5)
+        w_old.workout_exercises.first.exercise_sets.first.tap { |s| existing_set = s }
+        PersonalRecord.create!(
+          user: pr_user, exercise: exercise, exercise_set: existing_set,
+          estimated_1rm: 365.00, weight: 315, reps: 5, recorded_at: 1.week.ago
+        )
+
+        w = build_workout_with_set(weight: 225, reps: 5)
+
+        expect {
+          patch "/api/v1/workouts/#{w.id}/complete",
+                headers: { 'Authorization' => "Bearer #{pr_token}" }, as: :json
+        }.not_to change(PersonalRecord, :count)
+      end
+
+      it 'skips bodyweight (nil weight) sets and does not create a PR' do
+        w = build_workout_with_set(weight: nil, reps: 15)
+
+        expect {
+          patch "/api/v1/workouts/#{w.id}/complete",
+                headers: { 'Authorization' => "Bearer #{pr_token}" }, as: :json
+        }.not_to change(PersonalRecord, :count)
+      end
+
+      it 'returns new_personal_records in the complete response when a PR is set' do
+        w = build_workout_with_set(weight: 225, reps: 5)
+
+        patch "/api/v1/workouts/#{w.id}/complete",
+              headers: { 'Authorization' => "Bearer #{pr_token}" }, as: :json
+
+        expect(response).to have_http_status(:ok)
+        body = JSON.parse(response.body)
+        prs = body['new_personal_records']
+        expect(prs.length).to eq(1)
+        expect(prs.first['exercise_name']).to eq('Squat')
+        expect(prs.first['weight']).to eq(225.0)
+        expect(prs.first['reps']).to eq(5)
+        expect(prs.first['estimated_1rm']).to be > 225
+        expect(prs.first['previous_best']).to be_nil
+      end
+
+      it 'returns empty new_personal_records when no PR is set' do
+        existing_set = nil
+        w_old = build_workout_with_set(weight: 315, reps: 5)
+        w_old.workout_exercises.first.exercise_sets.first.tap { |s| existing_set = s }
+        PersonalRecord.create!(
+          user: pr_user, exercise: exercise, exercise_set: existing_set,
+          estimated_1rm: 365.00, weight: 315, reps: 5, recorded_at: 1.week.ago
+        )
+        w = build_workout_with_set(weight: 225, reps: 5)
+
+        patch "/api/v1/workouts/#{w.id}/complete",
+              headers: { 'Authorization' => "Bearer #{pr_token}" }, as: :json
+
+        body = JSON.parse(response.body)
+        expect(body['new_personal_records']).to eq([])
+      end
     end
   end
 

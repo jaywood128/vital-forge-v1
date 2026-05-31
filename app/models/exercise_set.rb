@@ -41,15 +41,6 @@ class ExerciseSet < ApplicationRecord
   end
 
 
-  def one_rep_max
-    # Estimate 1RM using Brzycki formula: weight / (1.0278 - 0.0278 × reps)
-    return nil unless weight && reps > 0 && reps <= 12
-
-
-    (weight / (1.0278 - (0.0278 * reps))).round(2)
-  end
-
-
   def intensity_description
     return nil unless rpe
 

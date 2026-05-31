@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_03_10_010332) do
+ActiveRecord::Schema[8.0].define(version: 2026_05_27_202436) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -46,6 +46,23 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_010332) do
     t.index ["exercise_type"], name: "index_exercises_on_exercise_type"
     t.index ["muscle_group"], name: "index_exercises_on_muscle_group"
     t.index ["name"], name: "index_exercises_on_name", unique: true
+  end
+
+  create_table "personal_records", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "exercise_id", null: false
+    t.bigint "exercise_set_id", null: false
+    t.decimal "estimated_1rm", precision: 6, scale: 2, null: false
+    t.decimal "weight", precision: 6, scale: 2, null: false
+    t.integer "reps", null: false
+    t.datetime "recorded_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["exercise_id"], name: "index_personal_records_on_exercise_id"
+    t.index ["exercise_set_id"], name: "index_personal_records_on_exercise_set_id"
+    t.index ["user_id", "exercise_id", "estimated_1rm"], name: "idx_on_user_id_exercise_id_estimated_1rm_441f7da09d"
+    t.index ["user_id", "exercise_id", "recorded_at"], name: "idx_on_user_id_exercise_id_recorded_at_76b6dc153f"
+    t.index ["user_id"], name: "index_personal_records_on_user_id"
   end
 
   create_table "solid_cable_messages", force: :cascade do |t|
@@ -194,6 +211,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_03_10_010332) do
   end
 
   add_foreign_key "exercise_sets", "workout_exercises", on_delete: :cascade
+  add_foreign_key "personal_records", "exercise_sets", on_delete: :restrict
+  add_foreign_key "personal_records", "exercises"
+  add_foreign_key "personal_records", "users"
   add_foreign_key "user_preferences", "users", on_delete: :cascade
   add_foreign_key "user_preferences", "workout_templates", column: "selected_workout_template_id"
   add_foreign_key "weekly_feedbacks", "users"

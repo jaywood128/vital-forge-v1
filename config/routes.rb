@@ -70,6 +70,7 @@ Rails.application.routes.draw do
       end
 
       resources :exercise_sets, only: [ :update ]
+      resources :personal_records, only: [ :index ]
       resource :user_preference, only: [ :show, :create, :update ]
 
       # Weekly AI feedback
