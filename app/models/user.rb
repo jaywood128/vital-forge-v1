@@ -3,6 +3,7 @@ class User < ApplicationRecord
 
   # Associations
   has_many :workouts, dependent: :destroy
+  has_many :personal_records, dependent: :destroy
   has_one :user_preference, dependent: :destroy
   has_many :weekly_feedbacks, dependent: :destroy
 
