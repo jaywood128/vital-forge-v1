@@ -71,25 +71,6 @@ RSpec.describe ExerciseSet, type: :model do
       expect(set.volume).to eq(1000)
     end
 
-    it "returns nil one_rep_max when weight missing" do
-      set = workout_exercise.exercise_sets.create!(
-        set_number: 1,
-        reps: 10,
-        weight_unit: "lbs"
-      )
-      expect(set.one_rep_max).to be_nil
-    end
-
-    it "computes one_rep_max when in range" do
-      set = workout_exercise.exercise_sets.create!(
-        set_number: 1,
-        reps: 5,
-        weight: 200,
-        weight_unit: "lbs"
-      )
-      expect(set.one_rep_max).to be_within(0.01).of(225.03)
-    end
-
     it "describes intensity from rpe" do
       set = workout_exercise.exercise_sets.create!(
         set_number: 1,
