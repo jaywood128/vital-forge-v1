@@ -14,7 +14,7 @@ class CreatePersonalRecords < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    add_index :personal_records, [:user_id, :exercise_id, :recorded_at]
-    add_index :personal_records, [:user_id, :exercise_id, :estimated_1rm]
+    add_index :personal_records, [ :user_id, :exercise_id, :recorded_at ]
+    add_index :personal_records, [ :user_id, :exercise_id, :estimated_1rm ]
   end
 end

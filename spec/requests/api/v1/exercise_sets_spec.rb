@@ -35,7 +35,7 @@ RSpec.describe "API V1 Exercise Sets", type: :request do
       set_number: 1, reps: reps, weight: weight,
       weight_unit: "lbs", completed: completed
     )
-    [workout, workout_exercise, exercise_set]
+    [ workout, workout_exercise, exercise_set ]
   end
 
   describe "PATCH /api/v1/exercise_sets/:id" do
