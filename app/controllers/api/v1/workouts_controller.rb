@@ -94,10 +94,13 @@ class Api::V1::WorkoutsController < ApplicationController
   # PATCH /api/v1/workouts/:id/complete
   def complete
     workout = current_user.workouts.find(params[:id])
-    # Skip complete! if callbacks already completed the workout (all sets marked done).
-    # Still run persist_prs so PRs are recorded regardless of which path completed it.
-    workout.complete! unless workout.completed?
-    new_prs = persist_prs(workout)
+    new_prs = nil
+    # Wrap completion + PR creation in a transaction so a PR validation failure
+    # rolls back the workout completion rather than leaving it completed with no PRs.
+    ActiveRecord::Base.transaction do
+      workout.complete! unless workout.completed?
+      new_prs = persist_prs(workout)
+    end
     render json: {
       workout: serialize_workout(workout),
       new_personal_records: new_prs
