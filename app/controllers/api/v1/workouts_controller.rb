@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
-# Workouts controller - supports both session (web) and JWT (mobile) authentication
+require Rails.root.join("lib/epley1_rm")
+
 class Api::V1::WorkoutsController < ApplicationController
   include DualAuthenticatable
+  include ::Epley1Rm
 
   respond_to :json
   skip_before_action :require_authentication
@@ -92,8 +94,14 @@ class Api::V1::WorkoutsController < ApplicationController
   # PATCH /api/v1/workouts/:id/complete
   def complete
     workout = current_user.workouts.find(params[:id])
-    workout.complete!
-    render json: { workout: serialize_workout(workout) }, status: :ok
+    # Skip complete! if callbacks already completed the workout (all sets marked done).
+    # Still run persist_prs so PRs are recorded regardless of which path completed it.
+    workout.complete! unless workout.completed?
+    new_prs = persist_prs(workout)
+    render json: {
+      workout: serialize_workout(workout),
+      new_personal_records: new_prs
+    }, status: :ok
   rescue ActiveRecord::RecordNotFound
     render json: { error: "Workout not found" }, status: :not_found
   rescue Workout::InvalidTransition => e
@@ -106,6 +114,49 @@ class Api::V1::WorkoutsController < ApplicationController
 
   def render_not_found
     render json: { error: "Workout not found" }, status: :not_found
+  end
+
+  def persist_prs(workout)
+    exercise_ids = workout.workout_exercises.map(&:exercise_id)
+    current_bests = PersonalRecord
+      .where(user_id: workout.user_id, exercise_id: exercise_ids)
+      .group_by(&:exercise_id)
+      .transform_values { |prs| prs.max_by(&:estimated_1rm) }
+
+    new_prs = []
+
+    workout.workout_exercises
+           .includes(:exercise, :exercise_sets)
+           .each do |we|
+      best_set = we.exercise_sets
+                   .select { |s| s.completed? && s.weight.present? && s.weight > 0 && s.reps.present? && s.reps > 0 }
+                   .max_by { |s| epley_1rm(s.weight, s.reps) }
+      next unless best_set
+
+      new_1rm = epley_1rm(best_set.weight, best_set.reps)
+      current_best = current_bests[we.exercise_id]
+      next if current_best && new_1rm <= current_best.estimated_1rm
+
+      PersonalRecord.create!(
+        user_id:         workout.user_id,
+        exercise_id:     we.exercise_id,
+        exercise_set_id: best_set.id,
+        estimated_1rm:   new_1rm.round(2),
+        weight:          best_set.weight,
+        reps:            best_set.reps,
+        recorded_at:     workout.completed_at || Time.current
+      )
+
+      new_prs << {
+        exercise_name: we.exercise.name,
+        weight:        best_set.weight.to_f,
+        reps:          best_set.reps,
+        estimated_1rm: new_1rm.round(2),
+        previous_best: current_best&.estimated_1rm&.to_f
+      }
+    end
+
+    new_prs
   end
 
   def serialize_workout(workout)
