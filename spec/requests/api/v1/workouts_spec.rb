@@ -622,6 +622,80 @@ RSpec.describe 'API V1 Workouts', type: :request do
     end
   end
 
+  describe 'GET /api/v1/workouts — cursor pagination' do
+    # Override outer let! vars as lazy lets so they are not auto-created,
+    # keeping the completed workout count predictable (exactly 25 from before block).
+    let(:workout1) { nil }
+    let(:workout2) { nil }
+    let(:headers) { { 'Authorization' => "Bearer #{jwt_token}", 'Accept' => 'application/json' } }
+
+    before do
+      # create 25 completed workouts spread over 25 days
+      25.times do |i|
+        user.workouts.create!(
+          name: "Workout #{i + 1}",
+          workout_date: (25 - i).days.ago,
+          workout_type: 'Strength',
+          intensity_level: 5,
+          completed: true
+        )
+      end
+      # one incomplete workout — must never appear in paginated results
+      user.workouts.create!(
+        name: 'In Progress',
+        workout_date: Date.today,
+        workout_type: 'Strength',
+        intensity_level: 5,
+        completed: false
+      )
+    end
+
+    it 'returns first page of 20 completed workouts with has_more true' do
+      get '/api/v1/workouts', params: { completed: true, limit: 20 }, headers: headers
+      expect(response).to have_http_status(:ok)
+      json = JSON.parse(response.body)
+      expect(json['data'].length).to eq(20)
+      expect(json['meta']['has_more']).to be true
+      expect(json['meta']['next_cursor']['before_date']).to be_present
+      expect(json['meta']['next_cursor']['before_id']).to be_present
+    end
+
+    it 'returns remaining workouts on second page with has_more false' do
+      # get first page to extract cursor
+      get '/api/v1/workouts', params: { completed: true, limit: 20 }, headers: headers
+      cursor = JSON.parse(response.body)['meta']['next_cursor']
+
+      get '/api/v1/workouts',
+        params: { completed: true, limit: 20, before_date: cursor['before_date'], before_id: cursor['before_id'] },
+        headers: headers
+      json = JSON.parse(response.body)
+      expect(json['data'].length).to eq(5)
+      expect(json['meta']['has_more']).to be false
+      expect(json['meta']['next_cursor']).to be_nil
+    end
+
+    it 'excludes incomplete workouts from paginated results' do
+      get '/api/v1/workouts', params: { completed: true, limit: 20 }, headers: headers
+      json = JSON.parse(response.body)
+      names = json['data'].map { |w| w['name'] }
+      expect(names).not_to include('In Progress')
+    end
+
+    it 'returns workouts in descending workout_date order' do
+      get '/api/v1/workouts', params: { completed: true, limit: 20 }, headers: headers
+      json = JSON.parse(response.body)
+      dates = json['data'].map { |w| w['workout_date'] }
+      expect(dates).to eq(dates.sort.reverse)
+    end
+
+    it 'returns all workouts (no meta) when limit param is absent — backward compat' do
+      get '/api/v1/workouts', headers: headers
+      json = JSON.parse(response.body)
+      expect(json['data']).to be_an(Array)
+      expect(json['meta']).to be_nil
+    end
+  end
+
   describe 'Security Tests' do
     xit 'prevents session hijacking by isolating user data' do
       # Get CSRF token and login
