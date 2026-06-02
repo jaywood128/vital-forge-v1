@@ -17,7 +17,7 @@ class Api::V1::WorkoutsController < ApplicationController
   #               limit, completed, before_date, before_id (for cursor pagination)
   def index
     workouts = current_user.workouts
-              .includes(workout_exercises: [:exercise, :exercise_sets])
+              .includes(workout_exercises: [ :exercise, :exercise_sets ])
 
     if params[:start_date].present? && params[:end_date].present?
       workouts = workouts.where(workout_date: params[:start_date]..params[:end_date])
