@@ -14,11 +14,11 @@ class Api::V1::WorkoutsController < ApplicationController
 
   # GET /api/v1/workouts
   # Query params: start_date, end_date (for date range filtering)
+  #               limit, completed, before_date, before_id (for cursor pagination)
   def index
     workouts = current_user.workouts
               .includes(workout_exercises: [ :exercise, :exercise_sets ])
 
-    # Apply date range filter if provided
     if params[:start_date].present? && params[:end_date].present?
       workouts = workouts.where(workout_date: params[:start_date]..params[:end_date])
     elsif params[:start_date].present?
@@ -27,11 +27,12 @@ class Api::V1::WorkoutsController < ApplicationController
       workouts = workouts.where("workout_date <= ?", params[:end_date])
     end
 
-    workouts = workouts.order(workout_date: :desc)
-
-    render json: {
-      data: workouts.map { |workout| serialize_workout_with_exercises(workout) }
-    }, status: :ok
+    if params[:limit].present?
+      render json: paginated_index(workouts), status: :ok
+    else
+      workouts = workouts.order(workout_date: :desc)
+      render json: { data: workouts.map { |w| serialize_workout_with_exercises(w) } }, status: :ok
+    end
   end
 
   # GET /api/v1/workouts/:id
@@ -117,6 +118,32 @@ class Api::V1::WorkoutsController < ApplicationController
 
   def render_not_found
     render json: { error: "Workout not found" }, status: :not_found
+  end
+
+  def paginated_index(workouts)
+    limit = params[:limit].to_i.clamp(1, 50)
+
+    workouts = workouts.where(completed: true) if params[:completed] == "true"
+
+    if params[:before_date].present? && params[:before_id].present?
+      workouts = workouts.where(
+        "(workout_date < :date) OR (workout_date = :date AND id < :id)",
+        date: params[:before_date], id: params[:before_id].to_i
+      )
+    end
+
+    results = workouts.order(workout_date: :desc, id: :desc).limit(limit + 1).to_a
+    has_more = results.size > limit
+    page = results.first(limit)
+
+    next_cursor = if has_more && page.last
+      { before_date: page.last.workout_date.iso8601, before_id: page.last.id }
+    end
+
+    {
+      data: page.map { |w| serialize_workout_with_exercises(w) },
+      meta: { has_more: has_more, next_cursor: next_cursor }
+    }
   end
 
   def persist_prs(workout)
